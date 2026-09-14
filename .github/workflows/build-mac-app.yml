@@ -1,0 +1,103 @@
+# ============================================================================
+# GITHUB ACTIONS AUTO-BUILDER WORKFLOW (.github/workflows/build-mac-app.yml) - v4
+# Automatically builds and compiles your macOS App and uploads it to GitHub Releases!
+# ============================================================================
+name: Build and Release macOS App
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers when you push a version tag (e.g. v1.0.0)
+  workflow_dispatch: # Allows you to trigger the build manually from the Actions tab!
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Initialize Electron App Structure
+        run: |
+          # Create a clean, syntactically perfect package.json using Heredoc (no escape-character issues!)
+          if [ ! -f package.json ]; then
+          cat << 'EOF' > package.json
+          {
+            "name": "ahmed-abdelfatah-app",
+            "version": "1.0.0",
+            "main": "main.js",
+            "scripts": {
+              "build": "electron-builder --mac"
+            },
+            "build": {
+              "appId": "com.ahmed.abdelfatah.app",
+              "productName": "Ahmed Abd-Elfatah App",
+              "mac": {
+                "category": "public.app-category.education",
+                "target": ["dmg", "zip"]
+              }
+            }
+          }
+          EOF
+          fi
+
+          # Create main.js using Heredoc
+          if [ ! -f main.js ]; then
+          cat << 'EOF' > main.js
+          const { app, BrowserWindow, session } = require('electron');
+          function createWindow() {
+              session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+                  details.requestHeaders['User-Agent'] = 'AhmedAcademySecureApp_SecureVideoSessionEngine';
+                  callback({ cancel: false, requestHeaders: details.requestHeaders });
+              });
+              const mainWindow = new BrowserWindow({
+                  width: 1280,
+                  height: 800,
+                  title: 'Ahmed Abd-Elfatah App',
+                  autoHideMenuBar: true,
+                  webPreferences: {
+                      contextIsolation: true,
+                      nodeIntegration: false
+                  }
+              });
+              // The desktop app is a secure browser shell for the live Pages site.
+              // It therefore uses the same D1-backed API as a normal browser visit.
+              mainWindow.loadURL('https://ahmed-portal.pages.dev/?app=true');
+          }
+          app.whenReady().then(() => {
+              createWindow();
+              app.on('activate', () => {
+                  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+              });
+          });
+          app.on('window-all-closed', () => {
+              if (process.platform !== 'darwin') app.quit();
+          });
+          EOF
+          fi
+
+      - name: Install Dependencies
+        run: |
+          npm install electron electron-builder --save-dev
+
+      - name: Build macOS Application
+        run: |
+          npx electron-builder --mac --universal
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Binaries to Release Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/*.dmg
+            dist/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

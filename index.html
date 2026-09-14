@@ -2188,6 +2188,44 @@
             }
         }
 
+        /* Final mobile and tablet clarity pass: opaque panels are easier to read,
+           faster to draw, and avoid the foggy glass effect on smaller screens. */
+        @media (max-width: 1023px) {
+            .glass-card, .glass-panel, .glass-sidebar, .glass-header, .glass-main-panel,
+            .glass-modal, #video-bookmarks-container, #admin-feed-composer, #feed-stream > div {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+            .dark-theme, .dark-theme body { background: #020617 !important; }
+            .dark-theme .glass-main-panel, .dark-theme .glass-sidebar,
+            .dark-theme .glass-header, .dark-theme .glass-card, .dark-theme .glass-modal {
+                background: #0b1220 !important;
+                box-shadow: none !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            #active-tab-title {
+                background: #111827 !important;
+                border: 1px solid #334155 !important;
+                border-radius: 999px !important;
+                padding: 7px 12px !important;
+                font-size: 11px !important;
+                line-height: 1.1 !important;
+            }
+            .light-theme #active-tab-title { background: #ffffff !important; border-color: #cbd5e1 !important; color: #172033 !important; }
+            .glass-header { padding-left: 12px !important; padding-right: 12px !important; }
+            #portal-section > main { padding-left: 10px !important; padding-right: 10px !important; }
+            #view-co-assistant #ai-chat-board { min-height: 48dvh !important; padding: 14px !important; font-size: 14px !important; line-height: 1.55 !important; }
+            #view-co-assistant #ai-chat-board p, #view-co-assistant #ai-chat-board span { font-size: 14px !important; line-height: 1.55 !important; }
+            #ai-chat-prompt { font-size: 14px !important; min-height: 48px !important; }
+            #feed-stream { gap: 14px !important; }
+            #feed-stream > div { padding: 14px !important; border-radius: 18px !important; background: #0f172a !important; }
+            .light-theme #feed-stream > div { background: #ffffff !important; border-color: #cbd5e1 !important; }
+            #feed-stream img { width: 38px !important; height: 38px !important; }
+            #view-feed { padding-left: 2px !important; padding-right: 2px !important; }
+        }
+
 </style>
 
 </head>
@@ -2203,7 +2241,7 @@
         <div class="w-full max-w-md glass-modal p-8 rounded-3xl space-y-6 text-center border border-white/10 relative shadow-2xl">
             
             <!-- Animated visual anchor -->
-            <div id="force-install-shield-icon" onclick="handleShieldTapBypass()" class="w-16 h-16 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto text-indigo-400 animate-pulse cursor-pointer select-none active:scale-95 transition-transform" title="Tap shield icon 10 times to bypass">
+            <div id="force-install-shield-icon" onclick="handleShieldTapBypass()" class="w-16 h-16 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto text-indigo-400 animate-pulse cursor-pointer select-none active:scale-95 transition-transform" title="Secure portal">
                 <i data-lucide="shield-alert" class="w-8 h-8"></i>
             </div>
 
@@ -2460,9 +2498,9 @@
                                     <img src="ai.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220%22 fill=%22none%22 stroke=%22%236366f1%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/></svg>';" class="w-4 h-4 object-contain rounded-md animate-pulse shrink-0" alt="AI">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-indigo-300">Co-Assistant AI</span>
                                 </div>
-                                <div class="flex gap-2">
+                                <div class="flex flex-col gap-2">
                                     <input type="text" id="co-assistant-chat-input" placeholder="Ask Co-Assistant about chemical reactions or projectile motion..." class="flex-1 bg-slate-950/60 border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 placeholder-gray-600 transition">
-                                    <button onclick="askCoAssistant()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold px-3.5 py-1.5 rounded-lg transition-all duration-300 flex items-center gap-1 shrink-0">
+                                    <button onclick="askCoAssistant()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold px-3.5 py-1.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-1">
                                         <i data-lucide="send" class="w-3 h-3"></i>
                                         <span>Ask</span>
                                     </button>
@@ -2894,26 +2932,6 @@
                                     STUDENT_DUMMY
                                 </div>
 
-                                <!-- In-Video Quiz Checkpoint Overlay -->
-                                <div id="video-checkpoint-overlay" class="absolute inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 z-20 hidden">
-                                    <div class="max-w-md w-full bg-[#0b0f19] border border-indigo-500/20 p-6 rounded-2xl shadow-2xl text-center space-y-4">
-                                        <div class="w-12 h-12 bg-indigo-950 border border-indigo-500/20 rounded-xl flex items-center justify-center mx-auto text-indigo-400">
-                                            <i data-lucide="help-circle" class="w-6 h-6"></i>
-                                        </div>
-                                        <div>
-                                            <span class="text-[9px] bg-indigo-950 text-indigo-400 border border-indigo-500/20 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Lesson Checkpoint Quiz</span>
-                                            <h3 id="checkpoint-question" class="text-xs font-bold text-white mt-3 leading-relaxed">Question text goes here?</h3>
-                                        </div>
-                                        <div id="checkpoint-options" class="grid grid-cols-1 gap-2 text-left pt-2">
-                                            <!-- Dynamic buttons -->
-                                        </div>
-                                        <div id="checkpoint-feedback" class="hidden text-xs font-semibold p-2.5 rounded-xl text-center"></div>
-                                        <button id="checkpoint-continue-btn" onclick="resumeVideoAfterQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition hidden">
-                                            Continue Lecture
-                                        </button>
-                                    </div>
-                                </div>
-
                                 <div id="player-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center space-y-3 bg-[#05070c]">
                                     <div class="w-12 h-12 rounded-full bg-indigo-950 border border-indigo-500/20 flex items-center justify-center text-indigo-400 animate-pulse">
                                         <i data-lucide="play" class="w-5 h-5 ml-1"></i>
@@ -2940,10 +2958,6 @@
                                             <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
                                             <span id="resume-checkpoint-text">Resume Checkpoint</span>
                                         </button>
-                                        <button onclick="triggerQuizCheckpointOverlay()" class="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-[10px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 interactive-btn" title="Test Checkpoint Quiz Question">
-                                            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-purple-400"></i>
-                                            <span>Quiz Checkpoint</span>
-                                        </button>
                                     </div>
                                 </div>
                                 <p id="current-video-desc" class="text-xs text-gray-400 leading-relaxed">Click on any recorded lesson from your playlist menu to load secure encrypted frames.</p>
@@ -2958,9 +2972,9 @@
                                         <span id="active-video-time-display" class="font-mono text-[10px] text-indigo-400 bg-indigo-950/60 border border-indigo-500/20 px-2 py-0.5 rounded-lg font-bold">00:00</span>
                                     </div>
 
-                                    <div class="flex gap-2">
+                                    <div class="flex flex-col gap-2">
                                         <input type="text" id="bookmark-title-input" onkeydown="if(event.key==='Enter') addBookmarkAtCurrentTime()" placeholder="e.g. Chemistry Part, Important Concept..." class="flex-1 bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 placeholder-gray-500 transition">
-                                        <button onclick="addBookmarkAtCurrentTime()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 interactive-btn shrink-0">
+                                        <button onclick="addBookmarkAtCurrentTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 interactive-btn">
                                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                                             <span>+ Add Bookmark</span>
                                         </button>
@@ -3183,6 +3197,10 @@
                 <div class="space-y-1">
                     <label class="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Lecture Description</label>
                     <textarea id="video-desc" required placeholder="Detail the concepts covered..." class="w-full h-16 bg-slate-950/60 border border-white/5 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Lesson Number</label>
+                    <input type="number" id="video-lesson" min="1" step="1" required value="1" class="w-full bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="space-y-1">
                     <label class="block text-[10px] text-gray-400 uppercase tracking-wider font-bold">Direct Archive.org Stream URL (MP4)</label>
@@ -4126,7 +4144,7 @@
                 return;
             }
 
-            filteredLectures.forEach(lec => {
+            filteredLectures.sort((a, b) => Number(a.lesson || 0) - Number(b.lesson || 0)).forEach(lec => {
                 const row = document.createElement('div');
                 row.className = "w-full text-left p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-indigo-500/20 flex items-center justify-between group transition cursor-pointer hover:bg-slate-900/35";
                 row.onclick = () => loadSecureLecture(lec);
@@ -4144,7 +4162,7 @@
                         </div>
                         <div class="overflow-hidden">
                             <h4 class="text-xs font-extrabold text-white truncate w-[160px] md:w-[300px]">${lec.title}</h4>
-                            <p class="text-[9px] text-gray-500 font-semibold tracking-wider uppercase mt-0.5">${lec.grade}</p>
+                            <p class="text-[9px] text-gray-500 font-semibold tracking-wider uppercase mt-0.5">Lesson ${lec.lesson || 1} · ${lec.grade}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -4178,6 +4196,8 @@
         let videoCheckpoints = JSON.parse(localStorage.getItem('video_checkpoints')) || {};
         let videoBookmarks = JSON.parse(localStorage.getItem('video_bookmarks')) || {};
         let activeLectureObj = null;
+        let youtubeCurrentTime = 0;
+        let youtubeClock = null;
 
         function formatTimeDisplay(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00";
@@ -4201,49 +4221,82 @@
             }
         }
 
-        function saveManualCheckpoint() {
+        function isYouTubeLectureActive() {
+            const frame = document.getElementById('youtube-player');
+            return !!(frame && !frame.classList.contains('hidden') && frame.src);
+        }
+
+        function requestYouTubeTime() {
+            const frame = document.getElementById('youtube-player');
+            if (!isYouTubeLectureActive() || !frame.contentWindow) return;
+            frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'getCurrentTime', args: [] }), 'https://www.youtube.com');
+        }
+
+        function getActiveVideoTime() {
             const player = document.getElementById('secure-player');
-            if (!activeLectureObj || !player || player.classList.contains('hidden')) {
+            if (isYouTubeLectureActive()) {
+                requestYouTubeTime();
+                return youtubeCurrentTime;
+            }
+            return player && !player.classList.contains('hidden') ? player.currentTime : null;
+        }
+
+        function seekActiveVideo(timeSec) {
+            const player = document.getElementById('secure-player');
+            if (isYouTubeLectureActive()) {
+                const frame = document.getElementById('youtube-player');
+                youtubeCurrentTime = timeSec;
+                frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [timeSec, true] }), 'https://www.youtube.com');
+                frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), 'https://www.youtube.com');
+                return true;
+            }
+            if (player && !player.classList.contains('hidden')) {
+                player.currentTime = timeSec;
+                player.play();
+                return true;
+            }
+            return false;
+        }
+
+        function saveCheckpointAt(time) {
+            if (!activeLectureObj || time === null || Number.isNaN(time)) return false;
+            const key = `lec_${activeLectureObj.id}`;
+            videoCheckpoints[key] = {
+                time,
+                formatted: formatTimeDisplay(time),
+                updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            localStorage.setItem('video_checkpoints', JSON.stringify(videoCheckpoints));
+            updateCheckpointUI();
+            return true;
+        }
+
+        function saveManualCheckpoint() {
+            const curTime = getActiveVideoTime();
+            if (!activeLectureObj || curTime === null) {
                 showToast('Please select and play a video lecture first.', 'warning');
                 return;
             }
-
-            const curTime = player.currentTime;
             const formatted = formatTimeDisplay(curTime);
-            const key = `lec_${activeLectureObj.id}`;
-
-            videoCheckpoints[key] = {
-                time: curTime,
-                formatted: formatted,
-                updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-
-            localStorage.setItem('video_checkpoints', JSON.stringify(videoCheckpoints));
-            updateCheckpointUI();
-            showToast(`Checkpoint saved at ${formatted}!`, 'success');
+            if (saveCheckpointAt(curTime)) showToast(`Checkpoint saved at ${formatted}!`, 'success');
         }
 
         function resumeVideoCheckpoint() {
-            const player = document.getElementById('secure-player');
-            if (!activeLectureObj || !player) return;
+            if (!activeLectureObj) return;
             const key = `lec_${activeLectureObj.id}`;
             const cp = videoCheckpoints[key];
 
             if (cp && cp.time) {
-                player.currentTime = cp.time;
-                player.play();
-                showToast(`Resumed lecture from checkpoint (${cp.formatted}).`, 'info');
+                if (seekActiveVideo(cp.time)) showToast(`Resumed lecture from checkpoint (${cp.formatted}).`, 'info');
             }
         }
 
         function addBookmarkAtCurrentTime() {
-            const player = document.getElementById('secure-player');
-            if (!activeLectureObj || !player || player.classList.contains('hidden')) {
+            const curTime = getActiveVideoTime();
+            if (!activeLectureObj || curTime === null) {
                 showToast('Please load and play a lecture to add bookmarks.', 'warning');
                 return;
             }
-
-            const curTime = player.currentTime;
             const timeFormatted = formatTimeDisplay(curTime);
             const input = document.getElementById('bookmark-title-input');
             const customTitle = input ? input.value.trim() : '';
@@ -4303,10 +4356,7 @@
         }
 
         function jumpToBookmark(timeSec) {
-            const player = document.getElementById('secure-player');
-            if (player) {
-                player.currentTime = timeSec;
-                player.play();
+            if (seekActiveVideo(timeSec)) {
                 showToast(`Jumped to ${formatTimeDisplay(timeSec)}.`, 'info');
             }
         }
@@ -4340,100 +4390,6 @@
 
 
         
-        // -----------------------------------------------------------------
-        // IN-VIDEO QUIZ CHECKPOINT OVERLAY LOGIC
-        // -----------------------------------------------------------------
-        const checkpointQuizBank = [
-            {
-                q: "What is the primary condition for a function to be continuous at x = a?",
-                options: ["lim x->a f(x) = f(a)", "f(a) = 0", "f'(a) = 1", "f(x) is undefined at a"],
-                correct: 0,
-                explain: "Correct! A function f(x) is continuous at x = a if the limit as x approaches a exists and equals f(a)."
-            },
-            {
-                q: "What is the derivative of sin(x) with respect to x?",
-                options: ["-cos(x)", "cos(x)", "tan(x)", "-sin(x)"],
-                correct: 1,
-                explain: "Correct! d/dx [sin(x)] = cos(x)."
-            },
-            {
-                q: "What is the result of integrating 2x dx?",
-                options: ["x^2 + C", "2x^2 + C", "2 + C", "x + C"],
-                correct: 0,
-                explain: "Correct! Integral of 2x dx = x² + C."
-            }
-        ];
-
-        let currentQuizIndex = 0;
-
-        function triggerQuizCheckpointOverlay() {
-            const player = document.getElementById('secure-player');
-            if (player && !player.paused) {
-                player.pause();
-            }
-
-            const overlay = document.getElementById('video-checkpoint-overlay');
-            const qEl = document.getElementById('checkpoint-question');
-            const optsEl = document.getElementById('checkpoint-options');
-            const feedbackEl = document.getElementById('checkpoint-feedback');
-            const continueBtn = document.getElementById('checkpoint-continue-btn');
-
-            if (!overlay || !qEl || !optsEl) return;
-
-            currentQuizIndex = Math.floor(Math.random() * checkpointQuizBank.length);
-            const quiz = checkpointQuizBank[currentQuizIndex];
-
-            qEl.textContent = quiz.q;
-            feedbackEl.classList.add('hidden');
-            continueBtn.classList.add('hidden');
-
-            optsEl.innerHTML = quiz.options.map((opt, idx) => `
-                <button onclick="handleQuizOptionSelect(${idx})" class="w-full text-left p-3 rounded-xl bg-slate-950/60 border border-white/10 hover:border-indigo-500/50 hover:bg-indigo-950/30 text-xs font-semibold text-white transition flex items-center justify-between group">
-                    <span>${String.fromCharCode(65 + idx)}. ${opt}</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 group-hover:text-indigo-400 transition"></i>
-                </button>
-            `).join('');
-
-            overlay.classList.remove('hidden');
-            lucide.createIcons();
-            showToast('Lesson Checkpoint Quiz Triggered!', 'info');
-        }
-
-        function handleQuizOptionSelect(selectedIdx) {
-            const quiz = checkpointQuizBank[currentQuizIndex];
-            const feedbackEl = document.getElementById('checkpoint-feedback');
-            const continueBtn = document.getElementById('checkpoint-continue-btn');
-
-            if (selectedIdx === quiz.correct) {
-                feedbackEl.textContent = quiz.explain;
-                feedbackEl.className = "text-xs font-bold p-3 rounded-xl text-center bg-emerald-950/80 border border-emerald-500/30 text-emerald-300";
-                feedbackEl.classList.remove('hidden');
-                continueBtn.classList.remove('hidden');
-                showToast('Correct answer! +50 XP awarded!', 'success');
-                if (currentUser && currentUser.role === 'student') {
-                    currentUser.xp = (currentUser.xp || 0) + 50;
-                    syncLocalDB();
-                    renderDashboard();
-                }
-            } else {
-                feedbackEl.textContent = "Incorrect answer. Please review the material and try again!";
-                feedbackEl.className = "text-xs font-bold p-3 rounded-xl text-center bg-red-950/80 border border-red-500/30 text-red-300";
-                feedbackEl.classList.remove('hidden');
-                showToast('Incorrect answer. Try again!', 'error');
-            }
-        }
-
-        function resumeVideoAfterQuiz() {
-            const overlay = document.getElementById('video-checkpoint-overlay');
-            if (overlay) overlay.classList.add('hidden');
-
-            const player = document.getElementById('secure-player');
-            if (player) {
-                player.play();
-            }
-            showToast('Resuming lecture stream!', 'success');
-        }
-
 // Secure Watermark Moving System (Anti-Piracy Screen Recording System)
         let watermarkTimer = null;
         
@@ -4443,6 +4399,18 @@
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
+
+        window.addEventListener('message', (event) => {
+            if (event.origin !== 'https://www.youtube.com') return;
+            let payload;
+            try { payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch (_) { return; }
+            const currentTime = payload && payload.info && Number(payload.info.currentTime);
+            if (!Number.isFinite(currentTime) || !activeLectureObj || !isYouTubeLectureActive()) return;
+            youtubeCurrentTime = currentTime;
+            const display = document.getElementById('active-video-time-display');
+            if (display) display.textContent = formatTimeDisplay(currentTime);
+            if (currentTime > 2) saveCheckpointAt(currentTime);
+        });
     
         function loadSecureLecture(lec) {
             activeLectureObj = lec;
@@ -4466,10 +4434,16 @@
                     player.classList.add('hidden');
                 }
                 if (youtubePlayer) {
-                    youtubePlayer.src = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&rel=0`;
+                    youtubeCurrentTime = 0;
+                    if (youtubeClock) clearInterval(youtubeClock);
+                    youtubePlayer.src = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&rel=0&origin=${encodeURIComponent(window.location.origin)}`;
                     youtubePlayer.classList.remove('hidden');
+                    youtubePlayer.onload = () => requestYouTubeTime();
+                    youtubeClock = setInterval(requestYouTubeTime, 800);
                 }
             } else {
+                if (youtubeClock) clearInterval(youtubeClock);
+                youtubeClock = null;
                 if (youtubePlayer) {
                     youtubePlayer.classList.add('hidden');
                     youtubePlayer.src = '';
@@ -4495,14 +4469,7 @@
                     if (display) display.textContent = formatTimeDisplay(player.currentTime);
 
                     if (player.currentTime > 2 && !player.paused) {
-                        const key = `lec_${activeLectureObj.id}`;
-                        videoCheckpoints[key] = {
-                            time: player.currentTime,
-                            formatted: formatTimeDisplay(player.currentTime),
-                            updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        };
-                        localStorage.setItem('video_checkpoints', JSON.stringify(videoCheckpoints));
-                        updateCheckpointUI();
+                        saveCheckpointAt(player.currentTime);
                     }
                 };
 
@@ -5283,8 +5250,9 @@
             const url = document.getElementById('video-url').value;
             const duration = 45; // Defaulted internally as requested
             const grade = document.getElementById('video-grade').value;
+            const lesson = Math.max(1, Number(document.getElementById('video-lesson').value) || 1);
 
-            const newLecture = { id: Date.now(), title, description, archive_url: url, duration_mins: duration, grade, watched_mins: 0, completed: false };
+            const newLecture = { id: Date.now(), title, description, lesson, archive_url: url, duration_mins: duration, grade, watched_mins: 0, completed: false };
             lectures.push(newLecture);
             syncLocalDB();
             closeAddVideoModal();
