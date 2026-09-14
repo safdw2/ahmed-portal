@@ -377,5 +377,5 @@ export async function onRequest(context) {
         }
         return jsonResponse({ error: 'D1 endpoint not found.' }, 404);
     }
-    return jsonResponse({ error: 'Endpoint not found.' }, 404);
+        return context.next();
 }
