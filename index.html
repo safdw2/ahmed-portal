@@ -2188,6 +2188,14 @@
             }
         }
 
+        /* Remove the hazy glass filter throughout the portal. Opaque surfaces
+           stay readable in either theme and render more smoothly on all devices. */
+        .glass-card, .glass-panel, .glass-sidebar, .glass-header, .glass-main-panel,
+        .glass-modal, #video-bookmarks-container, #admin-feed-composer, #feed-stream > div {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
         /* Final mobile and tablet clarity pass: opaque panels are easier to read,
            faster to draw, and avoid the foggy glass effect on smaller screens. */
         @media (max-width: 1023px) {
