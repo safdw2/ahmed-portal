@@ -101,10 +101,10 @@ CREATE TABLE IF NOT EXISTS portal_feedbacks (
 );
 
 -- --------------------------------------------------------------------
--- Seed the teacher/admin account so 'admin' / 'admin123' style logins
--- (handled in-app) always have a matching server-side record too.
+-- Seed the initial admin account. The explicit 'admin' role is the only role
+-- allowed to open or operate the Admin Console.
 -- Safe to run multiple times thanks to the UNIQUE(phone) guard.
 -- --------------------------------------------------------------------
 INSERT INTO students_table (phone, name, password, grade, gender, title, xp, watch_mins, role, can_post_feed)
-VALUES ('admin', 'Administrator', 'admin123', 'Staff', 'Boy', 'Director', 0, 0, 'teacher', 1)
+VALUES ('admin', 'Administrator', 'admin123', 'Staff', 'Boy', 'Director', 0, 0, 'admin', 1)
 ON CONFLICT(phone) DO NOTHING;

@@ -3431,18 +3431,38 @@
             try {
                 const res = await fetch(`${D1_API_BASE}${path}`, {
                     method: options.method || 'GET',
+                    credentials: 'same-origin',
                     headers: { 'Content-Type': 'application/json' },
                     body: options.body ? JSON.stringify(options.body) : undefined
                 });
-                if (!res.ok) throw new Error(`D1 request failed (${res.status})`);
-                return await res.json();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || `D1 request failed (${res.status})`);
+                return data;
             } catch (err) {
                 console.warn(`D1 Sync notice [${path}]:`, err.message);
                 return null;
             }
         }
 
+        async function authRequest(path, options = {}) {
+            try {
+                const res = await fetch(`/api/auth${path}`, {
+                    method: options.method || 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: options.body ? JSON.stringify(options.body) : undefined
+                });
+                const data = await res.json();
+                return res.ok ? data : { error: data.error || 'Authentication failed.' };
+            } catch (_) {
+                return { error: 'Unable to contact the authentication service.' };
+            }
+        }
+
         const D1 = {
+            login: (id, password, remember) => authRequest('/login', { method: 'POST', body: { id, password, remember } }),
+            getSession: () => authRequest('/session'),
+            logout: () => authRequest('/logout', { method: 'POST' }),
             getStudents: () => d1Request('/students'),
             saveStudent: (student) => d1Request('/students', { method: 'POST', body: student }),
             grantXP: (id, xpAmount) => d1Request('/students/xp', { method: 'POST', body: { id, xpAmount } }),
@@ -3569,7 +3589,7 @@
 
             syncLocalDB();
             if (typeof syncFeedbackDB === 'function') syncFeedbackDB();
-            restoreRememberedSession();
+            await restoreRememberedSession();
 
             // Re-render whatever is currently on screen with the freshly hydrated data
             if (currentUser) {
@@ -3577,7 +3597,7 @@
                 if (typeof renderVideos === 'function') renderVideos();
                 if (typeof renderMaterials === 'function') renderMaterials();
                 if (typeof renderFeed === 'function') renderFeed();
-                if (typeof renderAdmin === 'function' && currentUser.role === 'teacher') renderAdmin();
+                if (typeof renderAdmin === 'function' && hasAdminGrant()) renderAdmin();
             }
             if (typeof renderFeedbacks === 'function') renderFeedbacks();
         }
@@ -3589,26 +3609,21 @@
         // -----------------------------------------------------------------
         const REMEMBERED_SESSION_KEY = 'portal_remembered_student_session';
 
-        function saveLoginPreference() {
-            const stayLoggedIn = document.getElementById('stay-logged-in');
-            if (stayLoggedIn?.checked && currentUser?.role === 'student') {
-                localStorage.setItem(REMEMBERED_SESSION_KEY, JSON.stringify({ id: currentUser.id }));
-            } else {
-                localStorage.removeItem(REMEMBERED_SESSION_KEY);
-            }
+        function hasAdminGrant(user = currentUser) {
+            return user?.role === 'admin';
         }
 
-        function restoreRememberedSession() {
+        function saveLoginPreference() {
+            // Session persistence is handled by the signed HttpOnly cookie.
+            localStorage.removeItem(REMEMBERED_SESSION_KEY);
+        }
+
+        async function restoreRememberedSession() {
             if (currentUser) return;
-            try {
-                const session = JSON.parse(localStorage.getItem(REMEMBERED_SESSION_KEY) || 'null');
-                if (!session?.id) return;
-                const student = students.find(item => String(item.id) === String(session.id) || String(item.phone) === String(session.id));
-                if (!student) return;
-                currentUser = { ...student, role: student.role || 'student' };
+            const session = await D1.getSession();
+            if (session?.user) {
+                currentUser = { ...session.user, role: session.user.role || 'student' };
                 loadPortal();
-            } catch (_) {
-                localStorage.removeItem(REMEMBERED_SESSION_KEY);
             }
         }
 
@@ -3632,37 +3647,22 @@
             }
         }
 
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             const id = document.getElementById('login-id').value.trim();
             const pass = document.getElementById('login-password').value;
             const errorBlock = document.getElementById('login-error');
 
             errorBlock.classList.add('hidden');
-
-            if (activeRole === 'student') {
-                // Find student
-                const student = students.find(s => String(s.id) === id || String(s.phone) === id);
-                if (student && student.password === pass) {
-                    currentUser = { ...student };
-                    if (!currentUser.role) currentUser.role = 'student';
-                    saveLoginPreference();
-                    loadPortal();
-                } else {
-                    errorBlock.textContent = "Invalid Student credentials. Please contact MR. Ahmed's assistants to provision your account.";
-                    errorBlock.classList.remove('hidden');
-                }
-            } else {
-                // Teacher bypass check
-                if (id === 'admin' && pass === 'admin123') {
-                    currentUser = { id: 'admin', name: 'Administrator', role: 'teacher', gender: 'Boy', title: 'Director' };
-                    saveLoginPreference();
-                    loadPortal();
-                } else {
-                    errorBlock.textContent = "Invalid teacher credentials.";
-                    errorBlock.classList.remove('hidden');
-                }
+            const result = await D1.login(id, pass, document.getElementById('stay-logged-in')?.checked);
+            if (!result?.user) {
+                errorBlock.textContent = result?.error || 'Invalid credentials.';
+                errorBlock.classList.remove('hidden');
+                return;
             }
+            currentUser = { ...result.user, role: result.user.role || 'student' };
+            saveLoginPreference();
+            loadPortal();
         }
 
         function loadPortal() {
@@ -3673,7 +3673,7 @@
             document.getElementById('user-name').textContent = currentUser.name;
             const avatar = document.getElementById('profile-avatar');
             
-            if (currentUser.role === 'teacher' || currentUser.role === 'admin') {
+            if (hasAdminGrant()) {
                 document.getElementById('nav-admin').classList.remove('hidden');
                 document.getElementById('admin-material-upload-btn').classList.remove('hidden');
                 document.getElementById('admin-video-upload-btn').classList.remove('hidden');
@@ -3705,6 +3705,7 @@
 
         function handleLogout() {
             currentUser = null;
+            D1.logout();
             localStorage.removeItem(REMEMBERED_SESSION_KEY);
             document.getElementById('portal-section').classList.add('hidden');
             document.getElementById('login-section').classList.remove('hidden');
@@ -3730,6 +3731,10 @@
         // TAB NAVIGATOR SWITCH SYSTEM
         // -----------------------------------------------------------------
         function switchTab(tabId) {
+            if (tabId === 'admin' && !hasAdminGrant()) {
+                showToast('Access denied: an administrator grant is required.', 'error');
+                return;
+            }
             activeTab = tabId;
             // Hide floating trigger inside Co Assistant tab to avoid visual replication
             const floatCont = document.getElementById('floating-co-assistant-container');
@@ -4985,6 +4990,10 @@
         // ADMIN CONSOLE INTERACTIVE DIRECT D1 SIMULATION ENGINE
         // -----------------------------------------------------------------
         function renderAdmin() {
+            if (!hasAdminGrant()) {
+                showToast('Access denied: an administrator grant is required.', 'error');
+                return;
+            }
             const listContainer = document.getElementById('admin-students-list');
             listContainer.innerHTML = '';
 
@@ -5058,13 +5067,15 @@
         }
 
         function toggleAdminPrivilege(id) {
+            if (!hasAdminGrant()) return;
             const student = students.find(s => s.id === id);
             if (student) {
                 student.role = student.role === 'admin' ? 'student' : 'admin';
                 syncLocalDB();
+                D1.saveStudent(student);
                 renderAdmin();
                 showToast(`Admin privilege updated for ${student.name}.`, 'success');
-                if (currentUser && currentUser.id === id) {
+                if (currentUser && (String(currentUser.id) === String(id) || String(currentUser.phone) === String(id))) {
                     currentUser.role = student.role;
                     loadPortal();
                 }
@@ -5072,6 +5083,7 @@
         }
 
         function toggleFeedPrivilege(id) {
+            if (!hasAdminGrant()) return;
             const student = students.find(s => s.id === id);
             if (student) {
                 student.can_post_feed = !student.can_post_feed;
@@ -5079,7 +5091,7 @@
                 D1.saveStudent(student);
                 renderAdmin();
                 showToast(`Feed posting privilege updated for ${student.name}.`, 'success');
-                if (currentUser && currentUser.id === id) {
+                if (currentUser && (String(currentUser.id) === String(id) || String(currentUser.phone) === String(id))) {
                     currentUser.can_post_feed = student.can_post_feed;
                     loadPortal();
                 }
@@ -5087,6 +5099,7 @@
         }
 
         function executeSQL() {
+            if (!hasAdminGrant()) return;
             const sql = document.getElementById('admin-sql-input').value.trim();
             const output = document.getElementById('sql-console-output');
             if (!sql) return;
@@ -5139,6 +5152,7 @@
         }
 
         function exportDatabase() {
+            if (!hasAdminGrant()) return;
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students, lectures, materials, feedPosts }));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
@@ -5150,6 +5164,7 @@
         }
 
         function modifyStudentXP(id) {
+            if (!hasAdminGrant()) return;
             const student = students.find(s => s.id === id);
             if (student) {
                 student.xp += 100;
@@ -5161,6 +5176,7 @@
         }
 
         function deleteStudentAccount(id) {
+            if (!hasAdminGrant()) return;
             students = students.filter(s => s.id !== id);
             syncLocalDB();
             renderAdmin();
@@ -5172,6 +5188,7 @@
         }
 
         function deleteLectureRegistry(id) {
+            if (!hasAdminGrant()) return;
             lectures = lectures.filter(l => l.id !== id);
             syncLocalDB();
             renderAdmin();
@@ -6562,7 +6579,7 @@
 
         
     function inspectStudentAnalytics(studentId) {
-        if (!currentUser || (currentUser.role !== 'teacher' && currentUser.role !== 'admin')) {
+        if (!hasAdminGrant()) {
             showToast('Access Denied: Only administrators can view student statistics.', 'error');
             return;
         }
@@ -6619,6 +6636,7 @@
     }
 
     function modifyStudentXP(id) {
+        if (!hasAdminGrant()) return;
         const student = students.find(s => s.id === id || s.phone === id);
         if (student) {
             const inputVal = prompt(`Enter EXP amount to inject into ${student.name}'s profile:`, "250");
