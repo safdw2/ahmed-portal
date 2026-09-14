@@ -1996,6 +1996,60 @@
             }
         }
 
+        /* ------------------------------------------------------------------
+           MOBILE / TABLET CLARITY PASS
+           Keep the portal quick and readable instead of expensive frosted UI.
+           ------------------------------------------------------------------ */
+        .glass-card, .glass-panel, .glass-sidebar, .glass-header, .glass-main-panel,
+        .glass-modal, .dashboard-header-glow, input, select, textarea,
+        #force-install-overlay, #toast-container > * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        .glass-card, .glass-panel, .glass-sidebar, .glass-header, .glass-main-panel,
+        .glass-modal {
+            background-image: none !important;
+        }
+        .light-theme .glass-card, .light-theme .glass-panel, .light-theme .glass-sidebar,
+        .light-theme .glass-header, .light-theme .glass-main-panel, .light-theme .glass-modal {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        .light-theme #view-co-assistant .bg-slate-900\/60,
+        .light-theme #view-co-assistant .bg-indigo-600\/15,
+        .light-theme #view-co-assistant .bg-indigo-950\/80 {
+            background: #eef2ff !important;
+            border-color: #a5b4fc !important;
+            color: #172554 !important;
+        }
+        .light-theme #view-co-assistant p,
+        .light-theme #view-co-assistant span,
+        .light-theme #view-co-assistant button {
+            color: #172554 !important;
+        }
+        .light-theme #view-co-assistant button.bg-indigo-600,
+        .light-theme #view-co-assistant button.bg-indigo-700 {
+            color: #ffffff !important;
+        }
+        @media (max-width: 1023px) {
+            body { background: #f8fafc !important; }
+            #portal-section { gap: 10px !important; }
+            .glass-sidebar { position: sticky; top: 0; z-index: 40; }
+            .glass-card, .glass-panel, .glass-main-panel { border-radius: 18px !important; }
+            .nav-btn { min-height: 44px !important; }
+            .grid { gap: 12px !important; }
+            .shadow-2xl, .shadow-xl, .shadow-lg { box-shadow: 0 5px 18px rgba(15,23,42,.08) !important; }
+        }
+        @media (max-width: 767px) {
+            body { padding: 0 !important; }
+            #portal-section { padding: 8px !important; }
+            #portal-section > main { padding: 10px !important; }
+            h1 { font-size: 1.35rem !important; }
+            p, span { font-size: 12px !important; }
+            #ai-chat-board { height: min(43dvh, 360px) !important; }
+        }
+
         /* ═════════════════════════════════════════════════════════════════════ */
         /* ✨ VISUAL SYSTEM V3 — "10000x BETTER" PASS (added on request)          */
         /* Pure add-on layer, placed last. Premium type pairing, a living aurora  */
@@ -3324,6 +3378,8 @@
     }
 
     function getLevelBadgeHTML(xp) {
+        // Staff accounts do not participate in the student level system.
+        if (currentUser && (currentUser.role === 'teacher' || currentUser.role === 'admin')) return '';
         const lvl = calculateLevelInfo(xp);
         return `<span class="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-black font-mono inline-block">Lvl ${lvl.level}: ${lvl.title}</span>`;
     }
@@ -3826,6 +3882,10 @@
             document.getElementById('welcome-message').textContent = `Marhaban, ${currentUser.name}!`;
             document.getElementById('dashboard-grade-info').textContent = currentUser.role === 'teacher' ? 'Workspace Director' : `Grade Level: ${currentUser.grade || 'Grade 10 (Secandory 1)'}`;
 
+            // Administrators and teachers have no student level or XP card.
+            const xpCard = document.getElementById('dashboard-xp-badge-level')?.parentElement?.parentElement;
+            if (xpCard) xpCard.classList.toggle('hidden', currentUser.role === 'teacher' || currentUser.role === 'admin');
+
             // Standings calculation
             const rankBadge = document.getElementById('dashboard-rank-badge');
             if (currentUser.role === 'teacher') {
@@ -4084,7 +4144,7 @@
                         </div>
                         <div class="overflow-hidden">
                             <h4 class="text-xs font-extrabold text-white truncate w-[160px] md:w-[300px]">${lec.title}</h4>
-                            <p class="text-[9px] text-gray-500 font-semibold tracking-wider uppercase mt-0.5">${lec.duration_mins} MINS · ${lec.grade}</p>
+                            <p class="text-[9px] text-gray-500 font-semibold tracking-wider uppercase mt-0.5">${lec.grade}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -4424,7 +4484,7 @@
 
             document.getElementById('current-video-title').textContent = lec.title;
             document.getElementById('current-video-desc').textContent = lec.description;
-            document.getElementById('current-video-badge').textContent = `LECTURE · ${lec.duration_mins} MINS`;
+            document.getElementById('current-video-badge').textContent = 'LECTURE';
 
             updateCheckpointUI();
             renderBookmarks();
@@ -5604,7 +5664,10 @@
                 .replace(/\\pi/g, 'π')
                 .replace(/\\theta/g, 'θ')
                 .replace(/\\int/g, '∫')
-                .replace(/\\sqrt/g, '√');
+                .replace(/\\sqrt/g, '√')
+                // Keep chat bubbles clean: raw markup punctuation is never useful
+                // to students and was showing up as visual clutter.
+                .replace(/[\\|{}\[\]]/g, '');
         }
 
         function copyAIText(text) {
@@ -5658,6 +5721,73 @@
             window.speechSynthesis.speak(utterance);
         }
 
+        // Deterministic portal commands: these run locally, so a navigation
+        // request works immediately and never depends on the AI provider.
+        function runPortalCommand(query, activeChat) {
+            const text = query.toLowerCase().replace(/[\\|{}\[\]]/g, '').trim();
+            const wantsAction = /\b(go|open|take me|show me|navigate|switch|start|play)\b/.test(text);
+            const reply = (message) => {
+                activeChat.messages.push({ role: 'assistant', text: message });
+                saveAIChatsToStorage();
+                renderAIChatBoard();
+                return true;
+            };
+
+            if (/\b(my|your)\s+(stats|statistics|progress|xp|exp|level|lectures watched|watched lectures|password)\b/.test(text)) {
+                if (!currentUser) return reply('Please sign in first, then I can show your learning progress.');
+                const completedIds = currentUser.completed_lecture_ids || [];
+                const watched = lectures.filter(lec => lec.completed || completedIds.includes(lec.id)).length;
+                const isStaff = currentUser.role === 'teacher' || currentUser.role === 'admin';
+                const level = calculateLevelInfo(currentUser.xp || 0);
+                const passwordNote = /password/.test(text) ? ' For security, I cannot display or reveal passwords.' : '';
+                const levelNote = isStaff ? ' Staff accounts do not have student levels.' : ` Level ${level.level}: ${level.title}.`;
+                return reply(`${currentUser.name}, you have watched ${watched} of ${lectures.length} lectures and earned ${currentUser.xp || 0} EXP.${levelNote}${passwordNote}`);
+            }
+
+            if (wantsAction && /\b(dashboard|home|main page)\b/.test(text)) {
+                switchTab('dashboard');
+                showToast('Opened your dashboard.', 'success');
+                return reply('Done — your dashboard is open.');
+            }
+
+            if (wantsAction && /\b(last|latest|newest)\b/.test(text) && /\b(lecture|lesson|video)\b/.test(text)) {
+                const allowed = lectures.filter(lec => !currentUser || currentUser.role !== 'student' || lec.grade === currentUser.grade);
+                const lecture = allowed[allowed.length - 1];
+                if (!lecture) return reply('There is no available lecture for your grade yet.');
+                switchTab('videos');
+                setTimeout(() => loadSecureLecture(lecture), 80);
+                showToast(`Opening: ${lecture.title}`, 'success');
+                return reply(`Done — I opened the latest lesson: ${lecture.title}.`);
+            }
+
+            if (wantsAction && /\b(lecture|lesson|video)\b/.test(text)) {
+                const match = text.match(/(?:lecture|lesson|video)\s*#?\s*(\d+)/);
+                if (match) {
+                    const number = Number(match[1]);
+                    const lecture = lectures.find(lec => Number(lec.lesson) === number || new RegExp(`\\b(?:lecture|lesson|part)\\s*${number}\\b`, 'i').test(lec.title)) || lectures[number - 1];
+                    if (lecture) {
+                        switchTab('videos');
+                        setTimeout(() => loadSecureLecture(lecture), 80);
+                        return reply(`Done — I opened ${lecture.title}.`);
+                    }
+                }
+            }
+
+            if (wantsAction && /\b(lectures|videos|lessons)\b/.test(text)) {
+                switchTab('videos');
+                return reply('Done — the lectures page is open.');
+            }
+            if (wantsAction && /\b(materials|worksheets|sheets|pdf)\b/.test(text)) {
+                switchTab('materials');
+                return reply('Done — the materials page is open.');
+            }
+            if (wantsAction && /\b(feed|community|announcements)\b/.test(text)) {
+                switchTab('feed');
+                return reply('Done — the community feed is open.');
+            }
+            return false;
+        }
+
         async function submitAIChatMessage() {
             const input = document.getElementById('ai-chat-prompt');
             const query = input.value.trim();
@@ -5676,6 +5806,8 @@
             activeChat.messages.push({ role: 'user', text: query });
             input.value = '';
             renderAIChatBoard();
+
+            if (runPortalCommand(query, activeChat)) return;
 
             const board = document.getElementById('ai-chat-board');
             const loadingBubble = document.createElement('div');
@@ -6567,7 +6699,7 @@
                 row.innerHTML = `
                     <div class="truncate max-w-[280px]">
                         <span class="font-extrabold text-white block truncate">${lec.title}</span>
-                        <span class="text-[9px] text-gray-500 font-mono">${lec.duration_mins} MINS · ${lec.grade}</span>
+                        <span class="text-[9px] text-gray-500 font-mono">${lec.grade}</span>
                     </div>
                     <div>${statusBadge}</div>
                 `;
