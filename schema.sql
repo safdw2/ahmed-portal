@@ -76,6 +76,13 @@ CREATE TABLE IF NOT EXISTS feed_table (
     likes_json          TEXT DEFAULT '[]',
     xp                  INTEGER DEFAULT 0,
     level_title         TEXT DEFAULT 'Novice Scientist 🟢',
+    author_role         TEXT DEFAULT 'Student',
+    author_gender       TEXT DEFAULT 'Boy',
+    author_title        TEXT,
+    font_size           TEXT DEFAULT '13px',
+    text_color          TEXT,
+    attachment_type     TEXT,
+    attachment_url      TEXT,
     created_at          TEXT DEFAULT (datetime('now'))
 );
 
