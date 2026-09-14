@@ -1536,6 +1536,10 @@
                 scroll-snap-align: start;
                 white-space: nowrap;
                 flex: 0 0 auto;
+                width: auto !important;
+                min-width: max-content;
+                padding: 8px 10px !important;
+                font-size: 10px !important;
             }
 
             /* Modals: full-height sheet feel instead of a cramped floating box */
@@ -1603,6 +1607,56 @@
         @media (max-width: 900px) and (orientation: landscape) {
             #video-theater { aspect-ratio: 16 / 8 !important; }
             .glass-sidebar { padding: 4px !important; }
+        }
+
+        /* Touch devices get the same visual language with substantially less
+           compositing work: smoother scrolling and far less battery use. */
+        @media (max-width: 1023px), (prefers-reduced-motion: reduce) {
+            #fluid-canvas { display: none !important; }
+            .glass-card, .glass-panel, .glass-sidebar, .glass-header, .glass-main-panel, .glass-modal {
+                backdrop-filter: blur(12px) saturate(130%) !important;
+                -webkit-backdrop-filter: blur(12px) saturate(130%) !important;
+            }
+            .glass-card, .liquid-glass-card, .ripple-btn::after {
+                animation: none !important;
+            }
+            *, *::before, *::after { scroll-behavior: auto !important; }
+        }
+
+        /* A full-size conversation—not a tiny desktop card—on phones/tablets. */
+        @media (max-width: 1023px) {
+            #view-co-assistant { min-height: calc(100dvh - 8.5rem); }
+            #view-co-assistant > .grid {
+                height: auto !important;
+                min-height: calc(100dvh - 10rem) !important;
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            #view-co-assistant > .grid > :first-child {
+                height: auto !important;
+                max-height: 138px;
+                min-height: 0;
+            }
+            #ai-sessions-list { display: flex; gap: 7px; overflow-x: auto; overflow-y: hidden; }
+            #ai-sessions-list > div { min-width: 145px; flex: 0 0 auto; }
+            #view-co-assistant > .grid > :last-child {
+                min-height: min(610px, calc(100dvh - 15rem));
+                height: calc(100dvh - 15rem) !important;
+            }
+            #ai-chat-board { min-height: 230px; }
+            #view-co-assistant .bg-indigo-950\/20 { display: none; }
+        }
+
+        @media (max-width: 767px) {
+            /* Conversation comes first on a phone; saved session management is
+               still available on tablet/desktop but would otherwise push the
+               composer below the fold. */
+            #view-co-assistant > .grid > :first-child { display: none !important; }
+            #view-co-assistant > .grid { min-height: 0 !important; }
+            #view-co-assistant > .grid > :last-child { min-height: 0; height: auto !important; }
+            #ai-chat-board { flex: 0 1 auto; height: min(34dvh, 280px); min-height: 210px; }
+            #ai-chat-prompt { min-width: 0; font-size: 14px !important; }
+            #view-co-assistant button { min-height: 44px; }
         }
 
     
@@ -3450,10 +3504,12 @@
 
             getFeed: () => d1Request('/feed'),
             saveFeedPost: (post) => d1Request('/feed', { method: 'POST', body: post }),
+            updateFeedPost: (post) => d1Request(`/feed/${encodeURIComponent(post.id)}`, { method: 'PUT', body: post }),
             deleteFeedPost: (id) => d1Request(`/feed/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
             getFeedbacks: () => d1Request('/feedbacks'),
             saveFeedback: (fb) => d1Request('/feedbacks', { method: 'POST', body: fb }),
+            updateFeedback: (fb) => d1Request(`/feedbacks/${encodeURIComponent(fb.id)}`, { method: 'PUT', body: fb }),
             deleteFeedback: (id) => d1Request(`/feedbacks/${encodeURIComponent(id)}`, { method: 'DELETE' })
         };
 
@@ -3481,7 +3537,26 @@
             if (Array.isArray(dbMaterials) && dbMaterials.length) materials = dbMaterials;
             if (Array.isArray(dbFeed) && dbFeed.length) {
                 feedPosts = dbFeed.map(p => ({
+                    // Older posts did not have presentation fields in D1. Match
+                    // them to their author profile so existing developer/student
+                    // avatars and custom titles are repaired on first reload.
+                    ...(() => {
+                        const authorProfile = Array.isArray(dbStudents) ? dbStudents.find(s => s.name === p.author) : null;
+                        return {
+                            profileGender: authorProfile?.gender,
+                            profileTitle: authorProfile?.title,
+                            profileRole: authorProfile?.role
+                        };
+                    })(),
                     ...p,
+                    role: p.author_role || p.role || (p.profileRole === 'teacher' ? 'Teacher' : 'Student'),
+                    gender: (p.author_gender === 'Boy' && p.profileGender && p.profileGender !== 'Boy') ? p.profileGender : (p.author_gender || p.gender || p.profileGender || 'Boy'),
+                    title: p.author_title || p.title || p.profileTitle || null,
+                    fontSize: p.font_size || p.fontSize || '13px',
+                    textColor: p.text_color || p.textColor || null,
+                    attachmentType: p.attachment_type || p.attachmentType || null,
+                    attachmentUrl: p.attachment_url || p.attachmentUrl || null,
+                    attachmentName: p.attachment_name || p.attachmentName || null,
                     comments: (() => { try { return JSON.parse(p.comments_json || '[]'); } catch (e) { return []; } })(),
                     likedBy: (() => { try { return JSON.parse(p.likes_json || '[]'); } catch (e) { return []; } })(),
                     likes: (() => { try { return JSON.parse(p.likes_json || '[]'); } catch (e) { return []; } })().length
@@ -3540,8 +3615,8 @@
 
             if (activeRole === 'student') {
                 // Find student
-                const student = students.find(s => s.id === id);
-                if (student) {
+                const student = students.find(s => String(s.id) === id || String(s.phone) === id);
+                if (student && student.password === pass) {
                     currentUser = { ...student };
                     if (!currentUser.role) currentUser.role = 'student';
                     loadPortal();
@@ -4675,6 +4750,13 @@
             renderFeed();
         }
 
+        // Keep every interaction in the same shared post record. This is what
+        // makes likes, comments, titles, colours and developer avatars survive
+        // a refresh and appear on other devices.
+        function persistFeedPost(post) {
+            if (post && post.id) D1.updateFeedPost(post);
+        }
+
         function likeFeedPost(postId) {
             const post = feedPosts.find(p => p.id === postId);
             if (!post) return;
@@ -4689,6 +4771,7 @@
                 post.likes = (post.likes || 0) - 1;
             }
             syncLocalDB();
+            persistFeedPost(post);
             renderFeed();
         }
 
@@ -4713,6 +4796,7 @@
                     replies: []
                 });
                 syncLocalDB();
+                persistFeedPost(post);
                 renderFeed();
                 showToast('Comment published.', 'success');
             }
@@ -4733,6 +4817,7 @@
                         comment.likes = (comment.likes || 0) - 1;
                     }
                     syncLocalDB();
+                    persistFeedPost(post);
                     renderFeed();
                 }
             }
@@ -4790,6 +4875,7 @@
                             reply.likes = (reply.likes || 0) - 1;
                         }
                         syncLocalDB();
+                        persistFeedPost(post);
                         renderFeed();
                     }
                 }
@@ -4838,6 +4924,7 @@
             if (post && post.comments) {
                 post.comments = post.comments.filter(c => c.id !== commentId);
                 syncLocalDB();
+                persistFeedPost(post);
                 renderFeed();
                 showToast('Comment deleted.', 'info');
             }
@@ -4850,6 +4937,7 @@
                 if (comment && comment.replies) {
                     comment.replies = comment.replies.filter(r => r.id !== replyId);
                     syncLocalDB();
+                    persistFeedPost(post);
                     renderFeed();
                     showToast('Reply deleted.', 'info');
                 }
@@ -4950,6 +5038,7 @@
             if (student) {
                 student.can_post_feed = !student.can_post_feed;
                 syncLocalDB();
+                D1.saveStudent(student);
                 renderAdmin();
                 showToast(`Feed posting privilege updated for ${student.name}.`, 'success');
                 if (currentUser && currentUser.id === id) {
@@ -5036,6 +5125,7 @@
         function deleteStudentAccount(id) {
             students = students.filter(s => s.id !== id);
             syncLocalDB();
+            D1.saveStudent(student);
             renderAdmin();
             showToast('Student credentials deleted from Cloud Server Nodes.', 'info');
             D1.deleteStudent(id); // 🗄️ remove the row from D1 too
@@ -5174,11 +5264,11 @@
             showToast(`Initiating secure direct download for: ${platform} Client App...`, 'info');
             setTimeout(() => {
                 if (platform === 'Windows') {
-                    window.location.href = '/ahmed abd-elfatah app setup 1.0.0.exe';
+                    window.location.href = '/Ahmed%20Abd-ElFatah%20App%20Setup%201.0.0.exe';
                 } else if (platform === 'macOS') {
-                    window.location.href = '/ahmed abd-elfatah app 1.0.0.dmg';
+                    window.location.href = '/Ahmed%20Abd-ElFatah%20App-1.0.0-arm64.dmg';
                 } else if (platform === 'Android') {
-                    window.location.href = '/ahmed abd-elfatah app 1.0.0.apk';
+                    window.location.href = '/Ahmed%20Abd-ElFatah%20App%201.0.0.apk';
                 }
                 showToast(`${platform} client package requested successfully.`, 'success');
             }, 800);
@@ -6307,6 +6397,7 @@
                     f.rating = feedbackSelectedRating;
                     f.text = text;
                     f.date = 'Updated Today';
+                    D1.updateFeedback(f);
                     showToast('Feedback updated successfully!', 'success');
                 }
                 feedbackEditingId = null;
