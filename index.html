@@ -1566,7 +1566,7 @@
                 border-radius: 14px !important;
             }
             #video-watermark-teacher, #video-watermark-student {
-                font-size: 7px !important;
+                font-size: 9px !important;
                 white-space: nowrap;
                 max-width: 90%;
                 overflow: hidden;
@@ -1574,12 +1574,6 @@
             }
             #secure-player, #youtube-player {
                 border-radius: 14px !important;
-            }
-
-            /* Force-install shield: comfortable full screen card on small phones */
-            #force-install-overlay > div {
-                max-height: 94vh !important;
-                overflow-y: auto !important;
             }
 
             /* Toasts float above thumb-reach, not under it */
@@ -2002,7 +1996,7 @@
            ------------------------------------------------------------------ */
         .glass-card, .glass-panel, .glass-sidebar, .glass-header, .glass-main-panel,
         .glass-modal, .dashboard-header-glow, input, select, textarea,
-        #force-install-overlay, #toast-container > * {
+        #toast-container > * {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
         }
@@ -2242,13 +2236,12 @@
             #feed-stream .feed-author-meta { min-width: 0 !important; }
             #feed-stream .feed-author-name { display: block !important; }
             #feed-stream .feed-author-name h4 { font-size: 13px !important; line-height: 1.35 !important; white-space: normal !important; }
-            #feed-stream .feed-author-badges { display: flex !important; width: 100% !important; margin-top: 5px !important; }
+            #feed-stream .feed-author-badges { display: flex !important; flex-direction: column !important; align-items: flex-start !important; width: 100% !important; margin-top: 5px !important; }
             #feed-stream .feed-author-badges span { margin-left: 0 !important; white-space: normal !important; line-height: 1.35 !important; }
             #feed-stream .feed-post-actions { width: 100% !important; justify-content: space-between !important; margin-top: 9px !important; padding-top: 8px !important; border-top: 1px solid rgba(148,163,184,.16) !important; }
             #feed-stream > div > p { font-size: 14px !important; line-height: 1.65 !important; word-break: normal !important; overflow-wrap: break-word !important; }
             #feed-stream .feed-comment-header, #feed-stream .feed-reply-header { display: block !important; }
             #feed-stream .feed-comment-author, #feed-stream .feed-reply-author { width: 100% !important; min-width: 0 !important; align-items: flex-start !important; }
-            #feed-stream .feed-comment-author > span, #feed-stream .feed-reply-author > span { white-space: normal !important; overflow-wrap: break-word !important; }
             #feed-stream .feed-comment-header > span, #feed-stream .feed-reply-header > span { display: block !important; margin-top: 6px !important; padding-top: 6px !important; border-top: 1px solid rgba(148,163,184,.16) !important; }
             #feed-stream .ml-4 { margin-left: 8px !important; padding-left: 8px !important; }
             #feed-stream .feed-comment-header + p, #feed-stream .feed-reply-header + p { font-size: 13px !important; line-height: 1.6 !important; word-break: normal !important; overflow-wrap: break-word !important; }
@@ -2256,25 +2249,6 @@
             .light-theme #feed-stream > div { background: #ffffff !important; border-color: #cbd5e1 !important; }
             #feed-stream img { width: 38px !important; height: 38px !important; }
             #view-feed { padding-left: 2px !important; padding-right: 2px !important; }
-        }
-
-        #view-co-assistant.ai-fullscreen {
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 90 !important;
-            margin: 0 !important;
-            padding: 12px !important;
-            background: #020617 !important;
-            overflow: hidden !important;
-        }
-        #view-co-assistant.ai-fullscreen > .grid { height: calc(100dvh - 24px) !important; min-height: 0 !important; }
-        #view-co-assistant.ai-fullscreen #ai-chat-board { height: auto !important; min-height: 0 !important; font-size: 15px !important; }
-        @media (max-width: 767px) {
-            #view-co-assistant.ai-fullscreen { padding: 8px !important; }
-            #view-co-assistant.ai-fullscreen > .grid { height: calc(100dvh - 16px) !important; }
-            #view-co-assistant.ai-fullscreen > .grid > :last-child { height: 100% !important; min-height: 0 !important; }
-            #view-co-assistant.ai-fullscreen #ai-chat-board { height: auto !important; min-height: 0 !important; margin: 10px 0 !important; }
-            #view-co-assistant.ai-fullscreen .bg-indigo-950\/20 { display: none !important; }
         }
 
 </style>
@@ -2286,65 +2260,6 @@
     
     <!-- 👁️ Inverted Blend-Mode Custom Cursor -->
     
-
-    <!-- FORCE APP INSTALLATION OVERLAY (DRM SHIELD) -->
-    <div id="force-install-overlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6 z-[100] hidden">
-        <div class="w-full max-w-md glass-modal p-8 rounded-3xl space-y-6 text-center border border-white/10 relative shadow-2xl">
-            
-            <!-- Animated visual anchor -->
-            <div id="force-install-shield-icon" onclick="handleShieldTapBypass()" class="w-16 h-16 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto text-indigo-400 animate-pulse cursor-pointer select-none active:scale-95 transition-transform" title="Secure portal">
-                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-            </div>
-
-            <div class="space-y-2">
-                <h2 class="text-lg font-black text-white tracking-tight">Official Client App Required</h2>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    To protect educational copyrights and stream secure lectures, MR. Ahmed's Academy requires accessing the portal through our official application.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-3 pt-2">
-                <button onclick="downloadApp('Windows')" class="flex items-center justify-between p-3 bg-slate-900/50 border border-white/5 rounded-2xl text-left download-btn-glow group">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-xl bg-indigo-950/80 text-indigo-400 group-hover:scale-110 transition">
-                            <i data-lucide="monitor" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-white">Download for Windows</p>
-                            <p class="text-[9px] text-gray-500">Standalone Installer (.exe)</p>
-                        </div>
-                    </div>
-                    <i data-lucide="download" class="w-4 h-4 text-gray-500 group-hover:text-white transition"></i>
-                </button>
-
-                <button onclick="downloadApp('macOS')" class="flex items-center justify-between p-3 bg-slate-900/50 border border-white/5 rounded-2xl text-left download-btn-glow group">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-xl bg-indigo-950/80 text-indigo-400 group-hover:scale-110 transition">
-                            <i data-lucide="laptop" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-white">Download for macOS</p>
-                            <p class="text-[9px] text-gray-500">App Bundle (.dmg)</p>
-                        </div>
-                    </div>
-                    <i data-lucide="download" class="w-4 h-4 text-gray-500 group-hover:text-white transition"></i>
-                </button>
-
-                <button onclick="downloadApp('Android')" class="flex items-center justify-between p-3 bg-slate-900/50 border border-white/5 rounded-2xl text-left download-btn-glow group">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-xl bg-indigo-950/80 text-indigo-400 group-hover:scale-110 transition">
-                            <i data-lucide="smartphone" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-white">Download for Android</p>
-                            <p class="text-[9px] text-gray-500">Package Installer (.apk)</p>
-                        </div>
-                    </div>
-                    <i data-lucide="download" class="w-4 h-4 text-gray-500 group-hover:text-white transition"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- ⚡ Dynamic Floating Background Blobs (Self-controlled in CSS) -->
     <div class="bg-blob-indigo"></div>
@@ -2473,10 +2388,6 @@
                         <img src="ai.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220%22 fill=%22none%22 stroke=%22#6366f1%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/></svg>';" class="w-3.5 h-3.5 rounded-md shrink-0">
                         <span class="text-[9px] font-black text-white uppercase tracking-wider">Co Assistant</span>
                     </div>
-                    <button onclick="switchTab('co-assistant')" class="text-[8px] bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white px-1.5 py-0.5 rounded font-black transition flex items-center gap-0.5" title="Open full chat tab">
-                        <span>Go to Co Assistant</span>
-                        <i data-lucide="arrow-up-right" class="w-2.5 h-2.5"></i>
-                    </button>
                 </div>
 
                 <!-- Center: Dynamic Suggestion Prompt Cards -->
@@ -2519,7 +2430,7 @@
             </header>
 
             <!-- Scrollable View Stream -->
-            <div class="flex-1 px-8 pb-8 pt-8 overflow-y-auto">
+            <div id="workspace-view-scroll" class="flex-1 px-8 pb-8 pt-8 overflow-y-auto">
 
                 <!-- 1. DASHBOARD VIEW -->
                 <div id="view-dashboard" class="view-panel space-y-6">
@@ -2828,7 +2739,7 @@
 
                 <!-- 2. MATERIALS & STUDY SHEETS -->
                 <!-- 2. CO ASSISTANT AI VIEW -->
-                <div id="view-co-assistant" class="view-panel h-full flex flex-col space-y-6 hidden">
+                <div id="view-co-assistant" class="view-panel h-full flex flex-col hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch h-[calc(100vh-12rem)] min-h-[480px]">
                         
                         <!-- Left Block: Saved Chats Session Browser (1/4 column) -->
@@ -2879,9 +2790,6 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div id="ai-active-session-title" class="text-xs text-indigo-300 font-black tracking-tight truncate max-w-[160px]">Active Session</div>
-                                    <button id="ai-fullscreen-button" onclick="toggleAIFullscreen()" class="p-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white transition" title="Open full-screen chat" aria-label="Open full-screen chat">
-                                        <i id="ai-fullscreen-icon" data-lucide="maximize-2" class="w-4 h-4"></i>
-                                    </button>
                                 </div>
                             </div>
                             
@@ -2981,10 +2889,10 @@
                                 <video id="secure-player" class="w-full h-full object-cover hidden shadow-2xl" controls controlsList="nodownload" oncontextmenu="return false;" playsinline></video>
                                 
                                 <!-- Floating Active Device Watermarks (Defense against local screen recorders) -->
-                                <div id="video-watermark-teacher" class="absolute no-select text-white/15 font-black tracking-widest font-mono text-[10px] select-none text-center pointer-events-none z-30 hidden" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8); transition: left 1.5s ease-in-out, top 1.5s ease-in-out;">
+                                <div id="video-watermark-teacher" class="absolute no-select text-white font-black tracking-widest font-mono text-xs select-none text-center pointer-events-none z-30 hidden" style="background: rgba(2,6,23,.78); border: 1px solid rgba(255,255,255,.55); border-radius: .5rem; padding: .35rem .55rem; box-shadow: 0 2px 10px rgba(0,0,0,.72); text-shadow: 1px 1px 2px rgba(0,0,0,1); transition: left 1.5s ease-in-out, top 1.5s ease-in-out;">
                                     MR. Ahmed Abd-ElFatah
                                 </div>
-                                <div id="video-watermark-student" class="absolute no-select text-white/20 font-black font-mono text-[10px] select-none text-center pointer-events-none z-30 hidden" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8); transition: left 1.5s ease-in-out, top 1.5s ease-in-out;">
+                                <div id="video-watermark-student" class="absolute no-select text-white font-black font-mono text-xs select-none text-center pointer-events-none z-30 hidden" style="background: rgba(79,70,229,.8); border: 1px solid rgba(255,255,255,.65); border-radius: .5rem; padding: .35rem .55rem; box-shadow: 0 2px 10px rgba(0,0,0,.72); text-shadow: 1px 1px 2px rgba(0,0,0,1); transition: left 1.5s ease-in-out, top 1.5s ease-in-out;">
                                     STUDENT_DUMMY
                                 </div>
 
@@ -3006,8 +2914,11 @@
                                         <h3 id="current-video-title" class="font-extrabold text-white text-sm">No lecture selected</h3>
                                     </div>
                                     <div id="video-checkpoint-actions" class="flex items-center gap-2 hidden">
-                                        <input id="checkpoint-time-input" type="text" inputmode="numeric" placeholder="MM:SS" aria-label="Checkpoint time" class="w-20 bg-slate-950/60 border border-white/10 rounded-xl px-2 py-1.5 text-[10px] font-mono text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500">
-                                        <button onclick="saveManualCheckpoint()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 interactive-btn" title="Save the typed time as a checkpoint">
+                                        <label class="flex items-center gap-2 bg-slate-950/60 border border-white/10 rounded-xl px-2 py-1.5" title="Choose a checkpoint time">
+                                            <span id="checkpoint-time-display" class="w-10 text-[10px] font-mono font-bold text-indigo-300">00:00</span>
+                                            <input id="checkpoint-time-picker" type="range" min="0" max="1" value="0" step="1" aria-label="Choose checkpoint time" oninput="updateTimestampPickerDisplay('checkpoint')" class="w-20 accent-indigo-500 cursor-pointer">
+                                        </label>
+                                        <button onclick="saveManualCheckpoint()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 interactive-btn" title="Save the selected time as a checkpoint">
                                             <i data-lucide="flag" class="w-3.5 h-3.5"></i>
                                             <span>Save Checkpoint</span>
                                         </button>
@@ -3031,7 +2942,10 @@
 
                                     <div class="flex flex-col gap-2">
                                         <input type="text" id="bookmark-title-input" onkeydown="if(event.key==='Enter') addBookmarkAtCurrentTime()" placeholder="e.g. Chemistry Part, Important Concept..." class="flex-1 bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 placeholder-gray-500 transition">
-                                        <input type="text" id="bookmark-time-input" inputmode="numeric" onkeydown="if(event.key==='Enter') addBookmarkAtCurrentTime()" placeholder="Bookmark time — type MM:SS, e.g. 12:30" class="w-full bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500 placeholder-gray-500 transition">
+                                        <label class="flex items-center gap-3 w-full bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2" title="Choose a bookmark time">
+                                            <span id="bookmark-time-display" class="w-12 text-xs font-mono font-bold text-indigo-300">00:00</span>
+                                            <input id="bookmark-time-picker" type="range" min="0" max="1" value="0" step="1" aria-label="Choose bookmark time" oninput="updateTimestampPickerDisplay('bookmark')" class="flex-1 accent-indigo-500 cursor-pointer">
+                                        </label>
                                         <button onclick="addBookmarkAtCurrentTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 interactive-btn">
                                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                                             <span>+ Add Bookmark</span>
@@ -3407,7 +3321,6 @@
         localStorage.removeItem('materials');
         localStorage.removeItem('students');
         localStorage.removeItem('feedPosts');
-        localStorage.removeItem('force_install_bypass');
 
         
     // 🏆 10-LEVEL ACADEMIC EXP & LEVELING CONFIGURATION
@@ -3460,69 +3373,12 @@
         return `<span class="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-black font-mono inline-block">Lvl ${lvl.level}: ${lvl.title}</span>`;
     }
 
-    // 🛡️ MOBILE 10-TAP SHIELD ICON BYPASS ENGINE
-    let shieldTapCount = 0;
-    let shieldTapTimer = null;
-
-    function handleShieldTapBypass() {
-        shieldTapCount++;
-        const remaining = 10 - shieldTapCount;
-
-        if (shieldTapTimer) clearTimeout(shieldTapTimer);
-        
-        shieldTapTimer = setTimeout(() => {
-            shieldTapCount = 0;
-        }, 3000);
-
-        if (remaining > 0 && remaining <= 5) {
-            showToast(`Tap shield ${remaining} more time${remaining > 1 ? 's' : ''} to bypass installation!`, 'info');
-        }
-
-        if (shieldTapCount >= 10) {
-            shieldTapCount = 0;
-            if (shieldTapTimer) clearTimeout(shieldTapTimer);
-            bypassForceInstall();
-        }
-    }
-
     let activeRole = 'student';
         let currentUser = null;
         let activeTab = 'dashboard';
         let selectedMaterialFilter = 'all';
 
-        // 🛡️ DRM SECURITY & APP CHECK INTEGRATION
-        // We enforce the installation screen on standard web browsers. It will always trigger at page startup!
-        const isApp = navigator.userAgent.includes("AhmedAcademySecureApp_SecureVideoSessionEngine") || 
-                      navigator.userAgent.includes("AhmedAcademyMobileAppSecureChannel");
-
-        // 📱 PLATFORM DETECTION ENGINE — decides who sees the "Install the App" shield.
-        // Android / Windows / macOS visitors on a normal browser => forced install screen.
-        // iPhone / iPad (iOS & iPadOS) visitors => skip the shield completely, land on the login screen instantly.
-        function detectClientPlatform() {
-            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
-            const platformStr = navigator.platform || '';
-
-            // iOS / iPadOS detection (iPadOS 13+ reports as "MacIntel" but exposes multi-touch)
-            const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-            const isIPadOS13Up = platformStr === 'MacIntel' && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
-
-            if (isIOS || isIPadOS13Up) return 'iOS';
-            if (/android/i.test(ua)) return 'Android';
-            if (/Mac/i.test(platformStr) || /Macintosh/i.test(ua)) return 'macOS';
-            if (/Win/i.test(platformStr) || /Windows/i.test(ua)) return 'Windows';
-            return 'Other';
-        }
-
-        const clientPlatform = detectClientPlatform();
-
-        window.addEventListener('DOMContentLoaded', () => {
-            // iPhone/iPad visitors bypass the force-install shield entirely and go straight to the login screen.
-            if (!isApp && clientPlatform !== 'iOS') {
-                document.getElementById('force-install-overlay').classList.remove('hidden');
-            }
-        });
-
-        // Global DRM keyboard shortcut listener (ALT + CTRL + SHIFT + Q) and Developer Console blocking
+        // Global security keyboard listener
         window.addEventListener('keydown', (e) => {
             // Block F12
             if (e.key === 'F12' || e.keyCode === 123) {
@@ -3540,11 +3396,6 @@
                 showToast("Security Notice: View Source is disabled on this secure student portal.", "error");
             }
 
-            // Normal bypass check
-            if (e.altKey && e.ctrlKey && e.shiftKey && e.key.toUpperCase() === 'Q') {
-                e.preventDefault();
-                bypassForceInstall();
-            }
         });
 
         // Prevent right click inspect element
@@ -3567,18 +3418,6 @@
                 submitAIChatMessage();
             }
         }
-
-        function bypassForceInstall() {
-            localStorage.setItem('force_install_bypass', 'true');
-            document.getElementById('force-install-overlay').classList.add('hidden');
-            showToast('Force app installation bypassed (Admin Mode Loaded via Shortcut).', 'success');
-            
-            // Developer shortcut auto-logs in as Administrator (with staff permissions)
-            currentUser = { id: 'admin', name: 'Administrator', role: 'teacher', gender: 'Boy', title: 'Director' };
-            loadPortal();
-        }
-
-
 
         // High quality mock data fallback (seeds automatically, replaces on D1 Fetch)
         let lectures = JSON.parse(localStorage.getItem('lectures')) || [];
@@ -4266,17 +4105,39 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        function parseTypedTimestamp(value) {
-            const clean = String(value || '').trim();
-            if (!clean) return null;
-            if (/^\d+$/.test(clean)) return Number(clean);
-            const parts = clean.split(':');
-            if (parts.length < 2 || parts.length > 3 || parts.some(part => !/^\d+$/.test(part))) return null;
-            const numbers = parts.map(Number);
-            const seconds = parts.length === 3
-                ? numbers[0] * 3600 + numbers[1] * 60 + numbers[2]
-                : numbers[0] * 60 + numbers[1];
-            return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+        function getTimestampPickerElements(kind) {
+            return {
+                picker: document.getElementById(`${kind}-time-picker`),
+                display: document.getElementById(`${kind}-time-display`)
+            };
+        }
+
+        function updateTimestampPickerDisplay(kind) {
+            const { picker, display } = getTimestampPickerElements(kind);
+            if (picker && display) display.textContent = formatTimeDisplay(Number(picker.value));
+        }
+
+        function setTimestampPicker(kind, seconds, resetMaximum = false) {
+            const { picker, display } = getTimestampPickerElements(kind);
+            if (!picker) return;
+            const selectedTime = Math.max(0, Math.round(Number(seconds) || 0));
+            const nativePlayer = document.getElementById('secure-player');
+            const duration = nativePlayer && Number.isFinite(nativePlayer.duration) ? Math.ceil(nativePlayer.duration) : 0;
+            const maximum = Math.max(1, duration, selectedTime);
+            if (resetMaximum) picker.max = maximum;
+            else picker.max = Math.max(Number(picker.max) || 1, maximum);
+            picker.value = Math.min(selectedTime, Number(picker.max));
+            if (display) display.textContent = formatTimeDisplay(Number(picker.value));
+        }
+
+        function syncTimestampPickerLimits(currentTime = 0) {
+            ['checkpoint', 'bookmark'].forEach(kind => {
+                const { picker } = getTimestampPickerElements(kind);
+                if (!picker) return;
+                const nativePlayer = document.getElementById('secure-player');
+                const duration = nativePlayer && Number.isFinite(nativePlayer.duration) ? Math.ceil(nativePlayer.duration) : 0;
+                picker.max = Math.max(Number(picker.max) || 1, duration, Math.ceil(Number(currentTime) || 0));
+            });
         }
 
         function updateCheckpointUI() {
@@ -4345,19 +4206,18 @@
         }
 
         function saveManualCheckpoint() {
-            const input = document.getElementById('checkpoint-time-input');
-            const curTime = parseTypedTimestamp(input ? input.value : '');
+            const picker = document.getElementById('checkpoint-time-picker');
+            const curTime = picker ? Number(picker.value) : null;
             if (!activeLectureObj) {
                 showToast('Please select a lecture first.', 'warning');
                 return;
             }
-            if (curTime === null) {
-                showToast('Type the checkpoint time as MM:SS, for example 12:30.', 'warning');
+            if (!Number.isFinite(curTime)) {
+                showToast('Choose a checkpoint time using the slider.', 'warning');
                 return;
             }
             const formatted = formatTimeDisplay(curTime);
             if (saveCheckpointAt(curTime)) {
-                if (input) input.value = formatted;
                 showToast(`Checkpoint saved at ${formatted}!`, 'success');
             }
         }
@@ -4373,14 +4233,14 @@
         }
 
         function addBookmarkAtCurrentTime() {
-            const timeInput = document.getElementById('bookmark-time-input');
-            const curTime = parseTypedTimestamp(timeInput ? timeInput.value : '');
+            const timePicker = document.getElementById('bookmark-time-picker');
+            const curTime = timePicker ? Number(timePicker.value) : null;
             if (!activeLectureObj) {
                 showToast('Please select a lecture first.', 'warning');
                 return;
             }
-            if (curTime === null) {
-                showToast('Type the bookmark time as MM:SS, for example 12:30.', 'warning');
+            if (!Number.isFinite(curTime)) {
+                showToast('Choose a bookmark time using the slider.', 'warning');
                 return;
             }
             const timeFormatted = formatTimeDisplay(curTime);
@@ -4400,7 +4260,6 @@
 
             localStorage.setItem('video_bookmarks', JSON.stringify(videoBookmarks));
             if (input) input.value = '';
-            if (timeInput) timeInput.value = '';
             renderBookmarks();
             showToast(`Bookmark "${bookmarkTitle}" added at ${timeFormatted}!`, 'success');
         }
@@ -4496,6 +4355,7 @@
             youtubeCurrentTime = currentTime;
             const display = document.getElementById('active-video-time-display');
             if (display) display.textContent = formatTimeDisplay(currentTime);
+            syncTimestampPickerLimits(currentTime);
             if (currentTime > 2) saveCheckpointAt(currentTime);
         });
     
@@ -4513,6 +4373,8 @@
             const bookmarksDiv = document.getElementById('video-bookmarks-container');
             if (actionsDiv) actionsDiv.classList.remove('hidden');
             if (bookmarksDiv) bookmarksDiv.classList.remove('hidden');
+            setTimestampPicker('checkpoint', 0, true);
+            setTimestampPicker('bookmark', 0, true);
 
             const ytId = extractYouTubeId(lec.archive_url);
             if (ytId) {
@@ -4554,11 +4416,14 @@
                 player.ontimeupdate = () => {
                     const display = document.getElementById('active-video-time-display');
                     if (display) display.textContent = formatTimeDisplay(player.currentTime);
+                    syncTimestampPickerLimits(player.currentTime);
 
                     if (player.currentTime > 2 && !player.paused) {
                         saveCheckpointAt(player.currentTime);
                     }
                 };
+
+                player.onloadedmetadata = () => syncTimestampPickerLimits(player.currentTime);
 
                 player.onended = () => {
                     if (currentUser && currentUser.role === 'student') {
@@ -4669,6 +4534,7 @@
                 const titleBadge = post.title ? `<span class="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1.5 font-bold inline-block">${post.title}</span>` : '';
                 const levelBadge = post.levelTitle ? `<span class="bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-bold inline-block">${post.levelTitle}</span>` : '';
                 const roleBadge = post.role === 'Teacher' || post.role === 'Admin' ? `<span class="bg-red-500/20 border border-red-500/30 text-red-400 text-[8px] px-1.5 py-0.5 rounded-lg ml-1.5 font-bold inline-block">Staff</span>` : '';
+                const developerBadge = post.gender === 'Website Developer' ? `<span class="bg-violet-500/20 border border-violet-500/30 text-violet-300 text-[8px] px-1.5 py-0.5 rounded-lg font-bold inline-block">Website Developer</span>` : '';
 
                 // Get correct post author avatar
                 let authorAvatar = "student1.png";
@@ -4701,9 +4567,6 @@
                         commentAvatar = "WD.png";
                     }
 
-                    const commentTitleBadge = comment.title ? `<span class="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-bold inline-block">${comment.title}</span>` : '';
-                    const commentRoleBadge = comment.role === 'Teacher' || comment.role === 'Admin' ? `<span class="bg-red-500/20 border border-red-500/30 text-red-400 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-bold inline-block">Staff</span>` : '';
-
                     const commentLikedByMe = comment.likedBy && comment.likedBy.includes(currentUser.name);
                     const commentHeartIconClass = commentLikedByMe ? "fill-red-500 text-red-500" : "text-gray-500 hover:text-red-400";
 
@@ -4726,9 +4589,6 @@
                             replyAvatar = "WD.png";
                         }
 
-                        const replyTitleBadge = reply.title ? `<span class="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-bold inline-block">${reply.title}</span>` : '';
-                        const replyRoleBadge = reply.role === 'Teacher' || reply.role === 'Admin' ? `<span class="bg-red-500/20 border border-red-500/30 text-red-400 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-bold inline-block">Staff</span>` : '';
-
                         const replyLikedByMe = reply.likedBy && reply.likedBy.includes(currentUser.name);
                         const replyHeartIconClass = replyLikedByMe ? "fill-red-500 text-red-500" : "text-gray-500 hover:text-red-400";
 
@@ -4740,14 +4600,9 @@
 
                         repliesHTML += `
                             <div class="p-2.5 rounded-xl bg-slate-950/20 border border-white/5 space-y-1">
-                                <div class="feed-reply-header flex items-center justify-between">
-                                    <div class="feed-reply-author flex items-center gap-1.5 min-w-0">
-                                        <img src="${replyAvatar}" class="w-4 h-4 rounded-full border border-white/10 shrink-0">
-                                        <span class="text-[10px] font-black text-white">${reply.author}</span>
-                                        ${replyTitleBadge}
-                                        ${replyRoleBadge}
-                                    </div>
-                                    <span class="text-[8px] text-gray-500 font-mono">${reply.date}</span>
+                                <div class="feed-reply-header flex items-center gap-1.5">
+                                    <img src="${replyAvatar}" class="w-4 h-4 rounded-full border border-white/10 shrink-0" alt="">
+                                    <span class="text-[10px] font-black text-white">${reply.author}</span>
                                 </div>
                                 <p class="text-[11px] text-gray-300 leading-relaxed">${reply.text}</p>
                                 <div class="flex items-center gap-2 mt-0.5 text-[8px] text-gray-500">
@@ -4764,14 +4619,9 @@
 
                     commentsHTML += `
                         <div class="p-3 rounded-xl bg-slate-950/35 border border-white/5 space-y-2 hover:border-white/10 transition-all">
-                            <div class="feed-comment-header flex items-center justify-between">
-                                <div class="feed-comment-author flex items-center gap-2 min-w-0">
-                                    <img src="${commentAvatar}" class="w-5 h-5 rounded-full border border-white/10 shrink-0">
-                                    <span class="text-[11px] font-black text-white">${comment.author}</span>
-                                    ${commentTitleBadge}
-                                    ${commentRoleBadge}
-                                </div>
-                                <span class="text-[8px] text-gray-500 font-mono">${comment.date}</span>
+                            <div class="feed-comment-header flex items-center gap-2">
+                                <img src="${commentAvatar}" class="w-5 h-5 rounded-full border border-white/10 shrink-0" alt="">
+                                <span class="text-[11px] font-black text-white">${comment.author}</span>
                             </div>
                             <p class="text-xs text-gray-300 leading-relaxed">${comment.text}</p>
                             
@@ -4807,10 +4657,11 @@
                                 <div class="feed-author-name flex items-center">
                                     <h4 class="text-xs font-extrabold text-white">${post.author}</h4>
                                 </div>
-                                <div class="feed-author-badges flex flex-wrap gap-1 mt-1">
+                                <div class="feed-author-badges flex flex-col items-start gap-1 mt-1">
                                     ${titleBadge}
                                     ${levelBadge}
                                     ${roleBadge}
+                                    ${developerBadge}
                                 </div>
                                 <p class="text-[9px] text-indigo-400 font-semibold tracking-wider uppercase">${post.role}</p>
                             </div>
@@ -5746,40 +5597,6 @@
             }
         }
 
-        let activeSpeechUtterance = null;
-        function hearAIText(btnElement, text) {
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-                if (activeSpeechUtterance && activeSpeechUtterance.btn === btnElement) {
-                    btnElement.querySelector('span').textContent = 'Hear';
-                    btnElement.querySelector('i').setAttribute('data-lucide', 'volume-2');
-                    lucide.createIcons();
-                    activeSpeechUtterance = null;
-                    return;
-                }
-            }
-
-            const cleanText = text.replace(/[^\w\s\d,.:;?!]/gi, '');
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.05;
-            utterance.lang = 'en-US';
-            
-            utterance.onend = () => {
-                btnElement.querySelector('span').textContent = 'Hear';
-                btnElement.querySelector('i').setAttribute('data-lucide', 'volume-2');
-                lucide.createIcons();
-                activeSpeechUtterance = null;
-            };
-
-            activeSpeechUtterance = { utterance, btn: btnElement };
-            btnElement.querySelector('span').textContent = 'Stop';
-            btnElement.querySelector('i').setAttribute('data-lucide', 'square');
-            lucide.createIcons();
-            
-            window.speechSynthesis.speak(utterance);
-        }
-
         // Deterministic portal commands: these run locally, so a navigation
         // request works immediately and never depends on the AI provider.
         function runPortalCommand(query, activeChat) {
@@ -5846,25 +5663,6 @@
             }
             return false;
         }
-
-        function toggleAIFullscreen() {
-            const view = document.getElementById('view-co-assistant');
-            const icon = document.getElementById('ai-fullscreen-icon');
-            const button = document.getElementById('ai-fullscreen-button');
-            if (!view) return;
-            const enabled = view.classList.toggle('ai-fullscreen');
-            if (icon) icon.setAttribute('data-lucide', enabled ? 'minimize-2' : 'maximize-2');
-            if (button) {
-                button.title = enabled ? 'Exit full-screen chat' : 'Open full-screen chat';
-                button.setAttribute('aria-label', button.title);
-            }
-            document.body.classList.toggle('overflow-hidden', enabled);
-            lucide.createIcons();
-        }
-
-        window.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && document.getElementById('view-co-assistant')?.classList.contains('ai-fullscreen')) toggleAIFullscreen();
-        });
 
         async function submitAIChatMessage() {
             const input = document.getElementById('ai-chat-prompt');
@@ -6112,9 +5910,6 @@
                         </button>
                         <button onclick="shareAIText(\`${msgEscaped}\`)" class="hover:text-cyan-400 font-bold flex items-center gap-0.5">
                             <i data-lucide="share-2" class="w-2.5 h-2.5"></i><span>Share</span>
-                        </button>
-                        <button id="hear-btn-${idx}" onclick="hearAIText(this, \`${msgEscaped}\`)" class="hover:text-purple-400 font-bold flex items-center gap-0.5">
-                            <i data-lucide="volume-2" class="w-2.5 h-2.5"></i><span>Hear</span>
                         </button>
                     </div>
                 ` : '';
@@ -6818,10 +6613,11 @@
         }
     }
 
-    // Start flow background loop
-        fluidRenderLoop();
-    </script>
+// Start flow background loop
+      fluidRenderLoop();
+    </script> <!-- 1. Close the inline JavaScript block here -->
 
-
-</body>
+    <!-- 2. Now include db.js -->
+    <script src="db.js"></script> 
+  </body>
 </html>
