@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MR. Ahmed Abd-ElFatah - Unified Student Portal</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
@@ -3503,8 +3505,8 @@
             deleteMaterial: (id) => d1Request(`/materials/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
             getFeed: () => d1Request('/feed'),
-            saveFeedPost: (post) => d1Request('/feed', { method: 'POST', body: post }),
-            updateFeedPost: (post) => d1Request(`/feed/${encodeURIComponent(post.id)}`, { method: 'PUT', body: post }),
+            saveFeedPost: (post) => d1Request('/feed', { method: 'POST', body: feedPostPayload(post) }),
+            updateFeedPost: (post) => d1Request(`/feed/${encodeURIComponent(post.id)}`, { method: 'PUT', body: feedPostPayload(post) }),
             deleteFeedPost: (id) => d1Request(`/feed/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
             getFeedbacks: () => d1Request('/feedbacks'),
@@ -3512,6 +3514,47 @@
             updateFeedback: (fb) => d1Request(`/feedbacks/${encodeURIComponent(fb.id)}`, { method: 'PUT', body: fb }),
             deleteFeedback: (id) => d1Request(`/feedbacks/${encodeURIComponent(id)}`, { method: 'DELETE' })
         };
+
+        // Keep a single explicit API shape for every feed save. This prevents
+        // display-only camelCase fields from being accidentally omitted when a
+        // post, comment, or reply is later saved back to D1.
+        function feedPostPayload(post) {
+            return {
+                author: post.author,
+                date: post.date || 'Today',
+                text: post.text,
+                attachment_name: post.attachmentName || post.attachment_name || null,
+                image: post.image || null,
+                comments_json: JSON.stringify(post.comments || []),
+                likes_json: JSON.stringify(post.likedBy || []),
+                xp: post.xp || 0,
+                level_title: post.levelTitle ?? post.level_title ?? 'Novice Scientist 🟢',
+                author_role: post.role ?? post.authorRole ?? post.author_role ?? 'Student',
+                author_gender: post.gender ?? post.authorGender ?? post.author_gender ?? 'Boy',
+                author_title: post.title ?? post.authorTitle ?? post.author_title ?? null,
+                font_size: post.fontSize ?? post.font_size ?? '13px',
+                text_color: post.textColor || post.text_color || null,
+                attachment_type: post.attachmentType || post.attachment_type || null,
+                attachment_url: post.attachmentUrl || post.attachment_url || null
+            };
+        }
+
+        // The internal permission values are lowercase, but a feed post keeps
+        // the full display label. Any custom role, gender, title, or level is
+        // returned unchanged instead of being collapsed into a fixed list.
+        function getFeedAuthorDetails(user = currentUser) {
+            const rawRole = String(user?.role ?? 'Student');
+            const standardRoles = { teacher: 'Teacher', admin: 'Admin', student: 'Student' };
+            const calculatedLevel = typeof calculateLevelInfo === 'function'
+                ? calculateLevelInfo(user?.xp || 0)?.title
+                : null;
+            return {
+                role: standardRoles[rawRole.toLowerCase()] || rawRole,
+                gender: user?.gender ?? 'Boy',
+                title: user?.title ?? null,
+                levelTitle: user?.levelTitle ?? user?.level_title ?? calculatedLevel ?? 'Novice Scientist 🟢'
+            };
+        }
 
         // Pulls the live data from Cloudflare D1 on page load. If the D1-bound
         // Pages Function isn't reachable (e.g. local static preview), the portal
@@ -3549,9 +3592,15 @@
                         };
                     })(),
                     ...p,
-                    role: p.author_role || p.role || (p.profileRole === 'teacher' ? 'Teacher' : 'Student'),
+                    // A legacy row uses "Student" as its SQL default even when
+                    // the author is staff. Prefer that author's saved profile
+                    // in this one ambiguous case.
+                    role: (p.author_role === 'Student' && p.profileRole && p.profileRole !== 'student')
+                        ? (p.profileRole === 'teacher' ? 'Teacher' : 'Admin')
+                        : (p.author_role || p.role || (p.profileRole === 'teacher' ? 'Teacher' : 'Student')),
                     gender: (p.author_gender === 'Boy' && p.profileGender && p.profileGender !== 'Boy') ? p.profileGender : (p.author_gender || p.gender || p.profileGender || 'Boy'),
                     title: p.author_title || p.title || p.profileTitle || null,
+                    levelTitle: p.level_title || p.levelTitle || null,
                     fontSize: p.font_size || p.fontSize || '13px',
                     textColor: p.text_color || p.textColor || null,
                     attachmentType: p.attachment_type || p.attachmentType || null,
@@ -4504,6 +4553,7 @@
                 
                 // Render custom titles as rounded rectangles
                 const titleBadge = post.title ? `<span class="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1.5 font-bold inline-block">${post.title}</span>` : '';
+                const levelBadge = post.levelTitle ? `<span class="bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[8px] px-1.5 py-0.5 rounded-lg ml-1 font-bold inline-block">${post.levelTitle}</span>` : '';
                 const roleBadge = post.role === 'Teacher' || post.role === 'Admin' ? `<span class="bg-red-500/20 border border-red-500/30 text-red-400 text-[8px] px-1.5 py-0.5 rounded-lg ml-1.5 font-bold inline-block">Staff</span>` : '';
 
                 // Get correct post author avatar
@@ -4643,6 +4693,7 @@
                                 <div class="flex items-center">
                                     <h4 class="text-xs font-extrabold text-white">${post.author}</h4>
                                     ${titleBadge}
+                                    ${levelBadge}
                                     ${roleBadge}
                                 </div>
                                 <p class="text-[9px] text-indigo-400 font-semibold tracking-wider uppercase">${post.role}</p>
@@ -4709,14 +4760,13 @@
             const customCol = document.getElementById('feed-post-colorwheel')?.value || '#ffffff';
             const textColor = colorSel === 'custom' ? customCol : colorSel;
 
+            const authorDetails = getFeedAuthorDetails();
             const newPost = {
                 fontSize: fontSize,
                 textColor: textColor,
                 id: Date.now(),
                 author: currentUser.name,
-                role: currentUser.role === 'teacher' ? 'Teacher' : (currentUser.role === 'admin' ? 'Admin' : 'Student'),
-                gender: currentUser.gender || 'Boy',
-                title: currentUser.title || null,
+                ...authorDetails,
                 date: 'Today',
                 text: text,
                 attachmentType: pendingFeedAttachment || null,
@@ -4786,9 +4836,7 @@
                 post.comments.push({
                     id: Date.now() + Math.random(),
                     author: currentUser.name,
-                    role: currentUser.role === 'teacher' ? 'Teacher' : (currentUser.role === 'admin' ? 'Admin' : 'Student'),
-                    gender: currentUser.gender || 'Boy',
-                    title: currentUser.title || null,
+                    ...getFeedAuthorDetails(),
                     date: 'Just now',
                     text: text,
                     likes: 0,
@@ -4843,15 +4891,14 @@
                     comment.replies.push({
                         id: Date.now() + Math.random(),
                         author: currentUser.name,
-                        role: currentUser.role === 'teacher' ? 'Teacher' : (currentUser.role === 'admin' ? 'Admin' : 'Student'),
-                        gender: currentUser.gender || 'Boy',
-                        title: currentUser.title || null,
+                        ...getFeedAuthorDetails(),
                         date: 'Just now',
                         text: text,
                         likes: 0,
                         likedBy: []
                     });
                     syncLocalDB();
+                    persistFeedPost(post);
                     renderFeed();
                     showToast('Reply published.', 'success');
                 }
