@@ -372,3 +372,10 @@ export async function onRequest(context) {
             if (d1 && fbId) {
                 await d1.prepare('DELETE FROM portal_feedbacks WHERE id = ?').bind(fbId).run();
                 return jsonResponse({ success: true, message: 'Feedback removed.' });
+            }
+            return jsonResponse({ success: true });
+        }
+        return jsonResponse({ error: 'D1 endpoint not found.' }, 404);
+    }
+    return jsonResponse({ error: 'Endpoint not found.' }, 404);
+}
