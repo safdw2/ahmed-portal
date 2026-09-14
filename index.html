@@ -2195,6 +2195,9 @@
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
         }
+        [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        .group > .absolute[class*="blur-"] { display: none !important; }
+        *:hover { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 
         /* Final mobile and tablet clarity pass: opaque panels are easier to read,
            faster to draw, and avoid the foggy glass effect on smaller screens. */
@@ -2222,13 +2225,18 @@
                 line-height: 1.1 !important;
             }
             .light-theme #active-tab-title { background: #ffffff !important; border-color: #cbd5e1 !important; color: #172033 !important; }
-            .glass-header { padding-left: 12px !important; padding-right: 12px !important; }
+            .glass-header { padding-left: 12px !important; padding-right: 12px !important; border-radius: 20px !important; margin: 6px 6px 0 !important; border: 1px solid #1e293b !important; }
+            .light-theme .glass-header { border-color: #cbd5e1 !important; }
             #portal-section > main { padding-left: 10px !important; padding-right: 10px !important; }
             #view-co-assistant #ai-chat-board { min-height: 48dvh !important; padding: 14px !important; font-size: 14px !important; line-height: 1.55 !important; }
             #view-co-assistant #ai-chat-board p, #view-co-assistant #ai-chat-board span { font-size: 14px !important; line-height: 1.55 !important; }
             #ai-chat-prompt { font-size: 14px !important; min-height: 48px !important; }
-            #feed-stream { gap: 14px !important; }
-            #feed-stream > div { padding: 14px !important; border-radius: 18px !important; background: #0f172a !important; }
+            #feed-stream { gap: 12px !important; width: 100% !important; }
+            #feed-stream > div { width: 100% !important; box-sizing: border-box !important; padding: 14px !important; border-radius: 18px !important; background: #0f172a !important; overflow-wrap: anywhere !important; }
+            #feed-stream .flex.items-start.justify-between, #feed-stream .flex.items-center.justify-between { gap: 10px !important; }
+            #feed-stream .flex.items-center.gap-2\.5 { min-width: 0 !important; gap: 9px !important; }
+            #feed-stream h4, #feed-stream p, #feed-stream span { max-width: 100% !important; overflow-wrap: anywhere !important; }
+            #feed-stream img { max-width: 100% !important; object-fit: cover !important; }
             .light-theme #feed-stream > div { background: #ffffff !important; border-color: #cbd5e1 !important; }
             #feed-stream img { width: 38px !important; height: 38px !important; }
             #view-feed { padding-left: 2px !important; padding-right: 2px !important; }
@@ -2958,7 +2966,8 @@
                                         <h3 id="current-video-title" class="font-extrabold text-white text-sm">No lecture selected</h3>
                                     </div>
                                     <div id="video-checkpoint-actions" class="flex items-center gap-2 hidden">
-                                        <button onclick="saveManualCheckpoint()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 interactive-btn" title="Save current timestamp as checkpoint">
+                                        <input id="checkpoint-time-input" type="text" inputmode="numeric" placeholder="MM:SS" aria-label="Checkpoint time" class="w-20 bg-slate-950/60 border border-white/10 rounded-xl px-2 py-1.5 text-[10px] font-mono text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500">
+                                        <button onclick="saveManualCheckpoint()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 interactive-btn" title="Save the typed time as a checkpoint">
                                             <i data-lucide="flag" class="w-3.5 h-3.5"></i>
                                             <span>Save Checkpoint</span>
                                         </button>
@@ -2982,6 +2991,7 @@
 
                                     <div class="flex flex-col gap-2">
                                         <input type="text" id="bookmark-title-input" onkeydown="if(event.key==='Enter') addBookmarkAtCurrentTime()" placeholder="e.g. Chemistry Part, Important Concept..." class="flex-1 bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 placeholder-gray-500 transition">
+                                        <input type="text" id="bookmark-time-input" inputmode="numeric" onkeydown="if(event.key==='Enter') addBookmarkAtCurrentTime()" placeholder="Bookmark time — type MM:SS, e.g. 12:30" class="w-full bg-slate-950/60 border border-white/5 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500 placeholder-gray-500 transition">
                                         <button onclick="addBookmarkAtCurrentTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 interactive-btn">
                                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                                             <span>+ Add Bookmark</span>
@@ -4214,6 +4224,19 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
+        function parseTypedTimestamp(value) {
+            const clean = String(value || '').trim();
+            if (!clean) return null;
+            if (/^\d+$/.test(clean)) return Number(clean);
+            const parts = clean.split(':');
+            if (parts.length < 2 || parts.length > 3 || parts.some(part => !/^\d+$/.test(part))) return null;
+            const numbers = parts.map(Number);
+            const seconds = parts.length === 3
+                ? numbers[0] * 3600 + numbers[1] * 60 + numbers[2]
+                : numbers[0] * 60 + numbers[1];
+            return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+        }
+
         function updateCheckpointUI() {
             if (!activeLectureObj) return;
             const key = `lec_${activeLectureObj.id}`;
@@ -4280,13 +4303,21 @@
         }
 
         function saveManualCheckpoint() {
-            const curTime = getActiveVideoTime();
-            if (!activeLectureObj || curTime === null) {
-                showToast('Please select and play a video lecture first.', 'warning');
+            const input = document.getElementById('checkpoint-time-input');
+            const curTime = parseTypedTimestamp(input ? input.value : '');
+            if (!activeLectureObj) {
+                showToast('Please select a lecture first.', 'warning');
+                return;
+            }
+            if (curTime === null) {
+                showToast('Type the checkpoint time as MM:SS, for example 12:30.', 'warning');
                 return;
             }
             const formatted = formatTimeDisplay(curTime);
-            if (saveCheckpointAt(curTime)) showToast(`Checkpoint saved at ${formatted}!`, 'success');
+            if (saveCheckpointAt(curTime)) {
+                if (input) input.value = formatted;
+                showToast(`Checkpoint saved at ${formatted}!`, 'success');
+            }
         }
 
         function resumeVideoCheckpoint() {
@@ -4300,9 +4331,14 @@
         }
 
         function addBookmarkAtCurrentTime() {
-            const curTime = getActiveVideoTime();
-            if (!activeLectureObj || curTime === null) {
-                showToast('Please load and play a lecture to add bookmarks.', 'warning');
+            const timeInput = document.getElementById('bookmark-time-input');
+            const curTime = parseTypedTimestamp(timeInput ? timeInput.value : '');
+            if (!activeLectureObj) {
+                showToast('Please select a lecture first.', 'warning');
+                return;
+            }
+            if (curTime === null) {
+                showToast('Type the bookmark time as MM:SS, for example 12:30.', 'warning');
                 return;
             }
             const timeFormatted = formatTimeDisplay(curTime);
@@ -4322,6 +4358,7 @@
 
             localStorage.setItem('video_bookmarks', JSON.stringify(videoBookmarks));
             if (input) input.value = '';
+            if (timeInput) timeInput.value = '';
             renderBookmarks();
             showToast(`Bookmark "${bookmarkTitle}" added at ${timeFormatted}!`, 'success');
         }
