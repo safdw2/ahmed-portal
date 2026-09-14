@@ -2251,6 +2251,11 @@
             #view-feed { padding-left: 2px !important; padding-right: 2px !important; }
         }
 
+        /* Staff dashboards intentionally focus on welcome, live rankings, and feedback. */
+        #dashboard-grid.dashboard-staff #dashboard-welcome-card,
+        #dashboard-grid.dashboard-staff #dashboard-leaderboard-card {
+            grid-column: 1 / -1;
+        }
 </style>
 
 </head>
@@ -2313,6 +2318,11 @@
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">Secret Password</label>
                     <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-950/60 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-gray-600 transition backdrop-blur-sm">
                 </div>
+
+                <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+                    <input id="stay-logged-in" type="checkbox" class="w-3.5 h-3.5 accent-indigo-500">
+                    <span>Stay logged in on this device</span>
+                </label>
 
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition duration-200 shadow-lg shadow-indigo-600/25">
                     Access Website
@@ -2435,10 +2445,10 @@
                 <!-- 1. DASHBOARD VIEW -->
                 <div id="view-dashboard" class="view-panel space-y-6">
                     <!-- Premium Bento Box UI Layout -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
+                    <div id="dashboard-grid" class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
                         
                         <!-- Cell 1: Profile & Standing -->
-                        <div class="bg-gradient-to-br from-indigo-950/20 via-slate-900/40 to-slate-900/40 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-6 relative overflow-hidden shadow-2xl group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card tilt-less md:col-span-2 lg:col-span-2 xl:col-span-2">
+                        <div id="dashboard-welcome-card" class="bg-gradient-to-br from-indigo-950/20 via-slate-900/40 to-slate-900/40 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-6 relative overflow-hidden shadow-2xl group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card tilt-less md:col-span-2 lg:col-span-2 xl:col-span-2">
                             <div class="absolute -top-12 -left-12 w-24 h-24 bg-indigo-600/10 rounded-full blur-2xl group-hover:bg-indigo-600/20 transition-all duration-500 pointer-events-none"></div>
                             <div class="space-y-3 z-10">
                                 <div class="flex items-center gap-3.5">
@@ -2455,7 +2465,7 @@
                             </div>
                             
                             <!-- Premium A-AI Assistant Quick Chat Field -->
-                            <div class="z-10 my-1 bg-slate-950/50 border border-white/5 p-3.5 rounded-xl space-y-2">
+                            <div id="dashboard-welcome-ai" class="z-10 my-1 bg-slate-950/50 border border-white/5 p-3.5 rounded-xl space-y-2">
                                 <div class="flex items-center gap-1.5">
                                     <img src="ai.png" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220%22 fill=%22none%22 stroke=%22%236366f1%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/></svg>';" class="w-4 h-4 object-contain rounded-md animate-pulse shrink-0" alt="AI">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-indigo-300">Co-Assistant AI</span>
@@ -2469,7 +2479,7 @@
                                 </div>
                             </div>
 
-                            <div class="pt-2 z-10">
+                            <div id="dashboard-standing" class="pt-2 z-10">
                                 <span class="text-[10px] text-gray-500 uppercase tracking-widest font-black block mb-1">Your Academic Standing</span>
                                 <div id="dashboard-rank-badge" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black shadow-lg border transition-all duration-300">
                                     Calculating...
@@ -2478,7 +2488,7 @@
                         </div>
                         
                         <!-- Cell 2: The Radial Course Progress Wheel -->
-                        <div class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col items-center justify-center space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card md:col-span-1 xl:col-span-1">
+                        <div id="dashboard-course-card" class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col items-center justify-center space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card md:col-span-1 xl:col-span-1">
                             <div class="absolute -right-12 -bottom-12 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl group-hover:bg-cyan-500/10 transition-all duration-500 pointer-events-none"></div>
                             <div class="relative flex items-center justify-center w-20 h-20 z-10">
                                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -2514,7 +2524,7 @@
                         </div>
                         
                         <!-- Cell 3: Class XP & Leveling Progress System -->
-                        <div class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card md:col-span-1 xl:col-span-1">
+                        <div id="dashboard-xp-card" class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card md:col-span-1 xl:col-span-1">
                             <div class="absolute -right-12 -top-12 w-24 h-24 bg-purple-600/5 rounded-full blur-2xl group-hover:bg-purple-600/10 transition-all duration-500 pointer-events-none"></div>
                             
                             <div class="flex items-center justify-between border-b border-white/5 pb-2">
@@ -2567,7 +2577,7 @@
                         </div>
                         
                         <!-- Cell 6: Academy Hall of Fame Leaderboard Card -->
-                        <div class="bg-gradient-to-br from-indigo-950/10 via-slate-900/30 to-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/20 transition-all duration-300 md:col-span-2 lg:col-span-2 xl:col-span-2 tilt-lift-card tilt-less">
+                        <div id="dashboard-leaderboard-card" class="bg-gradient-to-br from-indigo-950/10 via-slate-900/30 to-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/20 transition-all duration-300 md:col-span-3 lg:col-span-3 xl:col-span-3 tilt-lift-card tilt-less">
                             <div class="absolute -left-12 -top-12 w-32 h-32 bg-indigo-600/5 rounded-full blur-3xl group-hover:bg-indigo-600/10 transition-all duration-500 pointer-events-none"></div>
                             <div class="flex items-center justify-between border-b border-white/5 pb-3">
                                 <div class="flex items-center gap-2">
@@ -2588,37 +2598,8 @@
                             </div>
                         </div>
 
-                        <!-- Cell 5: Wrapped Application Downloads (Linked to Cloud & Archive.org) -->
-                        <div class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 md:col-span-1 lg:col-span-1 xl:col-span-1 tilt-lift-card">
-                            <div class="absolute -bottom-12 -left-12 w-24 h-24 bg-cyan-600/5 rounded-full blur-2xl group-hover:bg-cyan-600/10 pointer-events-none"></div>
-                            <div>
-                                <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-2">Download Client Apps</h3>
-                                <p class="text-[10px] text-gray-400 leading-relaxed mb-4">Access video lectures & homework worksheets through unified native software clients.</p>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pb-2">
-                                <button onclick="downloadApp('Windows')" class="flex flex-col items-center justify-center p-2.5 bg-slate-950/40 border border-white/5 rounded-xl transition group interactive-btn backdrop-blur-sm download-btn-glow">
-                                    <i data-lucide="monitor" class="w-5 h-5 text-indigo-400 group-hover:scale-110 transition"></i>
-                                    <span class="text-[10px] font-bold text-white mt-1.5">Windows</span>
-                                    <span class="text-[8px] text-gray-500">1.0.0.exe</span>
-                                </button>
-                                <button onclick="downloadApp('macOS')" class="flex flex-col items-center justify-center p-2.5 bg-slate-950/40 border border-white/5 rounded-xl transition group interactive-btn backdrop-blur-sm download-btn-glow">
-                                    <i data-lucide="laptop" class="w-5 h-5 text-indigo-400 group-hover:scale-110 transition"></i>
-                                    <span class="text-[10px] font-bold text-white mt-1.5">macOS</span>
-                                    <span class="text-[8px] text-gray-500">1.0.0.dmg</span>
-                                </button>
-                                <button onclick="downloadApp('Android')" class="flex flex-col items-center justify-center p-2.5 bg-slate-950/40 border border-white/5 rounded-xl transition group interactive-btn backdrop-blur-sm download-btn-glow">
-                                    <i data-lucide="smartphone" class="w-5 h-5 text-indigo-400 group-hover:scale-110 transition"></i>
-                                    <span class="text-[10px] font-bold text-white mt-1.5">Android</span>
-                                    <span class="text-[8px] text-gray-500">1.0.0.apk</span>
-                                </button>
-                            </div>
-                            <div class="pt-2 border-t border-white/5 text-[9px] text-gray-500 flex flex-col items-center justify-center">
-                                <span>Verifiable security logs registered per license download.</span>
-                            </div>
-                        </div>
-
                         <!-- Cell 4: Learning Analytics -->
-                        <div class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 md:col-span-1 lg:col-span-1 xl:col-span-1 tilt-lift-card">
+                        <div id="dashboard-analytics-card" class="bg-slate-900/30 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex flex-col justify-between space-y-4 shadow-2xl relative overflow-hidden group hover:border-indigo-500/30 hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.15)] transition-all duration-300 tilt-lift-card md:col-span-1 lg:col-span-1 xl:col-span-1">
                             <div class="absolute -top-12 -right-12 w-24 h-24 bg-violet-600/5 rounded-full blur-2xl group-hover:bg-violet-600/10 transition-all duration-500 pointer-events-none"></div>
                             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest z-10">Learning Analytics</h3>
                             <div class="space-y-3 z-10">
@@ -3588,6 +3569,7 @@
 
             syncLocalDB();
             if (typeof syncFeedbackDB === 'function') syncFeedbackDB();
+            restoreRememberedSession();
 
             // Re-render whatever is currently on screen with the freshly hydrated data
             if (currentUser) {
@@ -3605,6 +3587,31 @@
         // -----------------------------------------------------------------
         // LOGIN MANAGER & SESSION SYSTEMS
         // -----------------------------------------------------------------
+        const REMEMBERED_SESSION_KEY = 'portal_remembered_student_session';
+
+        function saveLoginPreference() {
+            const stayLoggedIn = document.getElementById('stay-logged-in');
+            if (stayLoggedIn?.checked && currentUser?.role === 'student') {
+                localStorage.setItem(REMEMBERED_SESSION_KEY, JSON.stringify({ id: currentUser.id }));
+            } else {
+                localStorage.removeItem(REMEMBERED_SESSION_KEY);
+            }
+        }
+
+        function restoreRememberedSession() {
+            if (currentUser) return;
+            try {
+                const session = JSON.parse(localStorage.getItem(REMEMBERED_SESSION_KEY) || 'null');
+                if (!session?.id) return;
+                const student = students.find(item => String(item.id) === String(session.id) || String(item.phone) === String(session.id));
+                if (!student) return;
+                currentUser = { ...student, role: student.role || 'student' };
+                loadPortal();
+            } catch (_) {
+                localStorage.removeItem(REMEMBERED_SESSION_KEY);
+            }
+        }
+
         function toggleLoginRole(role) {
             activeRole = role;
             const tabStudent = document.getElementById('tab-student');
@@ -3639,6 +3646,7 @@
                 if (student && student.password === pass) {
                     currentUser = { ...student };
                     if (!currentUser.role) currentUser.role = 'student';
+                    saveLoginPreference();
                     loadPortal();
                 } else {
                     errorBlock.textContent = "Invalid Student credentials. Please contact MR. Ahmed's assistants to provision your account.";
@@ -3648,6 +3656,7 @@
                 // Teacher bypass check
                 if (id === 'admin' && pass === 'admin123') {
                     currentUser = { id: 'admin', name: 'Administrator', role: 'teacher', gender: 'Boy', title: 'Director' };
+                    saveLoginPreference();
                     loadPortal();
                 } else {
                     errorBlock.textContent = "Invalid teacher credentials.";
@@ -3696,9 +3705,12 @@
 
         function handleLogout() {
             currentUser = null;
+            localStorage.removeItem(REMEMBERED_SESSION_KEY);
             document.getElementById('portal-section').classList.add('hidden');
             document.getElementById('login-section').classList.remove('hidden');
             document.getElementById('login-password').value = '';
+            const stayLoggedIn = document.getElementById('stay-logged-in');
+            if (stayLoggedIn) stayLoggedIn.checked = false;
             
             // Stop video playing if any
             const securePlayer = document.getElementById('secure-player');
@@ -3793,17 +3805,19 @@
         function renderDashboard() {
             if (!currentUser) return;
 
-            // Welcome
-            document.getElementById('welcome-message').textContent = `Marhaban, ${currentUser.name}!`;
-            document.getElementById('dashboard-grade-info').textContent = currentUser.role === 'teacher' ? 'Workspace Director' : `Grade Level: ${currentUser.grade || 'Grade 10 (Secandory 1)'}`;
+            const isStaff = currentUser.role === 'teacher' || currentUser.role === 'admin';
+            const dashboardGrid = document.getElementById('dashboard-grid');
+            dashboardGrid?.classList.toggle('dashboard-staff', isStaff);
+            ['dashboard-course-card', 'dashboard-xp-card', 'dashboard-analytics-card', 'dashboard-welcome-ai', 'dashboard-standing']
+                .forEach(id => document.getElementById(id)?.classList.toggle('hidden', isStaff));
 
-            // Administrators and teachers have no student level or XP card.
-            const xpCard = document.getElementById('dashboard-xp-badge-level')?.parentElement?.parentElement;
-            if (xpCard) xpCard.classList.toggle('hidden', currentUser.role === 'teacher' || currentUser.role === 'admin');
+            // Welcome
+            document.getElementById('welcome-message').textContent = isStaff ? 'Marhaban, Administrator!' : `Marhaban, ${currentUser.name}!`;
+            document.getElementById('dashboard-grade-info').textContent = isStaff ? 'Administrator Workspace' : `Grade Level: ${currentUser.grade || 'Grade 10 (Secandory 1)'}`;
 
             // Standings calculation
             const rankBadge = document.getElementById('dashboard-rank-badge');
-            if (currentUser.role === 'teacher') {
+            if (isStaff) {
                 rankBadge.textContent = 'SYSTEM CONSOLE ADMINISTRATOR';
                 rankBadge.className = "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black shadow-lg border transition-all duration-300 rank-red";
             } else {
@@ -3820,9 +3834,12 @@
                 rankBadge.className = `inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black shadow-lg border transition-all duration-300 ${badgeClass}`;
             }
 
-            // Radial Course Progress Wheel Math (Calculate watched lectures ratio)
-            const watchedList = lectures.filter(l => l.completed).length;
-            const totalLectures = lectures.length || 1;
+            // Calculate completion strictly from this student's own completed-lecture list.
+            const completedIds = new Set((currentUser.completed_lecture_ids || []).map(String));
+            const availableLectures = isStaff ? lectures : lectures.filter(lecture => lecture.grade === currentUser.grade);
+            const watchedLectures = availableLectures.filter(lecture => completedIds.has(String(lecture.id)));
+            const watchedList = watchedLectures.length;
+            const totalLectures = availableLectures.length || 1;
             const watchPercentage = Math.round((watchedList / totalLectures) * 100);
 
             document.getElementById('dashboard-progress-percent').textContent = `${watchPercentage}%`;
@@ -3832,8 +3849,8 @@
             document.getElementById('dashboard-progress-ring').style.strokeDashoffset = ringOffset;
 
             // Calculate hours watched vs remaining for supporting stats
-            const totalLecturesDuration = lectures.reduce((acc, l) => acc + (l.duration_mins || 0), 0);
-            const watchedMinutes = lectures.filter(l => l.completed).reduce((acc, l) => acc + (l.duration_mins || 0), 0);
+            const totalLecturesDuration = availableLectures.reduce((acc, lecture) => acc + (Number(lecture.duration_mins) || 0), 0);
+            const watchedMinutes = watchedLectures.reduce((acc, lecture) => acc + (Number(lecture.duration_mins) || 0), 0);
             const hoursWatched = (watchedMinutes / 60).toFixed(1);
             const hoursRemaining = (Math.max(0, totalLecturesDuration - watchedMinutes) / 60).toFixed(1);
 
@@ -3854,8 +3871,8 @@
 
             // Learning analytics numbers
             document.getElementById('dashboard-total-minutes').textContent = `${currentUser.watch_mins || 0} mins`;
-            document.getElementById('dashboard-lectures-finished').textContent = `${watchedList} / ${lectures.length}`;
-            document.getElementById('dashboard-lecture-count').textContent = `Currently active with ${lectures.length} live courses listed.`;
+            document.getElementById('dashboard-lectures-finished').textContent = `${watchedList} / ${availableLectures.length}`;
+            document.getElementById('dashboard-lecture-count').textContent = `Currently active with ${availableLectures.length} live courses listed.`;
 
             // Milestone Badges logic
             const minutesPlayed = currentUser.watch_mins || 0;
@@ -4026,6 +4043,7 @@
         function renderVideos() {
             const sessionsList = document.getElementById('video-sessions-list');
             sessionsList.innerHTML = '';
+            const completedIds = new Set((currentUser?.completed_lecture_ids || []).map(String));
 
             const filteredLectures = lectures.filter(l => {
                 if (currentUser.role === 'student' && l.grade !== currentUser.grade) return false;
@@ -4065,7 +4083,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        ${lec.completed ? '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 shrink-0"></i>' : ''}
+                        ${completedIds.has(String(lec.id)) ? '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 shrink-0"></i>' : ''}
                         ${deleteLectureBtn}
                     </div>
                 `;
@@ -4346,12 +4364,37 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
+        function completeActiveLecture() {
+            if (!activeLectureObj || !currentUser || currentUser.role !== 'student') return;
+            if (!Array.isArray(currentUser.completed_lecture_ids)) currentUser.completed_lecture_ids = [];
+            const alreadyDone = currentUser.completed_lecture_ids.some(id => String(id) === String(activeLectureObj.id));
+            if (alreadyDone) return;
+
+            currentUser.completed_lecture_ids.push(activeLectureObj.id);
+            currentUser.xp = (Number(currentUser.xp) || 0) + 150;
+            currentUser.watch_mins = (Number(currentUser.watch_mins) || 0) + (Number(activeLectureObj.duration_mins) || 0);
+
+            const index = students.findIndex(student => String(student.id) === String(currentUser.id) || String(student.phone) === String(currentUser.id));
+            if (index !== -1) {
+                students[index] = { ...students[index], ...currentUser };
+            }
+
+            syncLocalDB();
+            renderDashboard();
+            renderVideos();
+            D1.saveStudent(currentUser);
+            showToast('Congratulations! Lecture completed. +150 XP awarded!', 'success');
+        }
+
         window.addEventListener('message', (event) => {
             if (event.origin !== 'https://www.youtube.com') return;
             let payload;
             try { payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch (_) { return; }
+            if (!activeLectureObj || !isYouTubeLectureActive()) return;
+            const playerState = Number(payload?.info?.playerState ?? payload?.info);
+            if (playerState === 0) completeActiveLecture();
             const currentTime = payload && payload.info && Number(payload.info.currentTime);
-            if (!Number.isFinite(currentTime) || !activeLectureObj || !isYouTubeLectureActive()) return;
+            if (!Number.isFinite(currentTime)) return;
             youtubeCurrentTime = currentTime;
             const display = document.getElementById('active-video-time-display');
             if (display) display.textContent = formatTimeDisplay(currentTime);
@@ -4387,7 +4430,10 @@
                     if (youtubeClock) clearInterval(youtubeClock);
                     youtubePlayer.src = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&rel=0&origin=${encodeURIComponent(window.location.origin)}`;
                     youtubePlayer.classList.remove('hidden');
-                    youtubePlayer.onload = () => requestYouTubeTime();
+                    youtubePlayer.onload = () => {
+                        requestYouTubeTime();
+                        youtubePlayer.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), 'https://www.youtube.com');
+                    };
                     youtubeClock = setInterval(requestYouTubeTime, 800);
                 }
             } else {
@@ -4425,29 +4471,7 @@
 
                 player.onloadedmetadata = () => syncTimestampPickerLimits(player.currentTime);
 
-                player.onended = () => {
-                    if (currentUser && currentUser.role === 'student') {
-                        if (!currentUser.completed_lecture_ids) currentUser.completed_lecture_ids = [];
-                        const alreadyDoneByThisStudent = currentUser.completed_lecture_ids.includes(lec.id);
-                        if (!alreadyDoneByThisStudent) {
-                            currentUser.completed_lecture_ids.push(lec.id);
-                            lec.completed = true;
-                            currentUser.xp += 150;
-                            currentUser.watch_mins += lec.duration_mins;
-                            const index = students.findIndex(s => s.id === currentUser.id);
-                            if (index !== -1) {
-                                students[index].xp = currentUser.xp;
-                                students[index].watch_mins = currentUser.watch_mins;
-                                students[index].completed_lecture_ids = currentUser.completed_lecture_ids;
-                            }
-                            syncLocalDB();
-                            showToast("Congratulations! Lecture completed. +150 XP awarded!", "success");
-                            renderDashboard();
-                            renderVideos();
-                            D1.saveStudent(currentUser); // 🗄️ mirror updated XP/watch_mins/progress into D1
-                        }
-                    }
-                };
+                player.onended = completeActiveLecture;
             }
 
             if (teacherMark) {
@@ -5022,7 +5046,7 @@
                     row.innerHTML = `
                         <div>
                             <h4 class="font-extrabold text-white">${lec.title}</h4>
-                            <p class="text-[9px] text-gray-500">D1 Stream Path: ${lec.archive_url.substring(0,35)}... · Target: ${lec.grade}</p>
+                            <p class="text-[9px] text-gray-500">D1 Stream Path: ${lec.archive_url.substring(0,35)}... · ${lec.grade}</p>
                         </div>
                         <button onclick="deleteLectureRegistry(${lec.id})" class="p-1 text-red-400 hover:text-white hover:bg-red-950/40 rounded-lg transition"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
                     `;
@@ -5575,9 +5599,15 @@
                 .replace(/\\theta/g, 'θ')
                 .replace(/\\int/g, '∫')
                 .replace(/\\sqrt/g, '√')
+                .replace(/\*\*/g, '')
+                .replace(/__/g, '')
                 // Keep chat bubbles clean: raw markup punctuation is never useful
                 // to students and was showing up as visual clutter.
                 .replace(/[\\|{}\[\]]/g, '');
+        }
+
+        function cleanAIText(text) {
+            return String(text || '').replace(/\*\*/g, '').replace(/__/g, '');
         }
 
         function copyAIText(text) {
@@ -5703,7 +5733,7 @@
             const apiHistory = [
                 {
                     role: "system",
-                    content: "You are Co Assistant, MR. Ahmed Abd-ElFatah's Unified Portal AI Copilot. Your primary purpose is to help students navigate the website features such as the Portal Dashboard, Syllabus Materials & PDF Documents, Secure Video Lectures Center, and Community Feed Announcements. You must decline doing their homework, solving full worksheets, or doing their exams directly, and prioritize website assistance. Be encouraging, organized, and helpful. Write out scientific formulas and equations cleanly using unicode or text where appropriate. Emphasize that you may make mistakes, and remind them to not message too rapidly if they request repeatedly. If they ask about the admin console, decline to help with it.\n\n" + getFeedSummaryForAI() + "\n\nIf the student asks about the community feed, recent announcements, who liked what, or comments, use this data to answer them accurately and friendly!"
+                    content: "You are Co Assistant, MR. Ahmed Abd-ElFatah's Unified Portal AI Copilot. Your primary purpose is to help students navigate the website features such as the Portal Dashboard, Syllabus Materials & PDF Documents, Secure Video Lectures Center, and Community Feed Announcements. You must decline doing their homework, solving full worksheets, or doing their exams directly, and prioritize website assistance. Be encouraging, organized, and helpful. Write out scientific formulas and equations cleanly using unicode or text where appropriate. Never use Markdown emphasis markers such as ** or __; use plain text headings and sentences instead. Emphasize that you may make mistakes, and remind them to not message too rapidly if they request repeatedly. If they ask about the admin console, decline to help with it.\n\n" + getFeedSummaryForAI() + "\n\nIf the student asks about the community feed, recent announcements, who liked what, or comments, use this data to answer them accurately and friendly!"
                 }
             ];
 
@@ -5828,7 +5858,7 @@
 
                 if (success && response) {
                     const data = await response.json();
-                    const aiText = data.choices[0].message.content;
+                    const aiText = cleanAIText(data.choices[0].message.content);
                     activeChat.messages.push({ role: 'assistant', text: aiText });
                     saveAIChatsToStorage();
                     renderAIChatBoard();
