@@ -2246,9 +2246,35 @@
             #feed-stream .feed-author-badges span { margin-left: 0 !important; white-space: normal !important; line-height: 1.35 !important; }
             #feed-stream .feed-post-actions { width: 100% !important; justify-content: space-between !important; margin-top: 9px !important; padding-top: 8px !important; border-top: 1px solid rgba(148,163,184,.16) !important; }
             #feed-stream > div > p { font-size: 14px !important; line-height: 1.65 !important; word-break: normal !important; overflow-wrap: break-word !important; }
+            #feed-stream .feed-comment-header, #feed-stream .feed-reply-header { display: block !important; }
+            #feed-stream .feed-comment-author, #feed-stream .feed-reply-author { width: 100% !important; min-width: 0 !important; align-items: flex-start !important; }
+            #feed-stream .feed-comment-author > span, #feed-stream .feed-reply-author > span { white-space: normal !important; overflow-wrap: break-word !important; }
+            #feed-stream .feed-comment-header > span, #feed-stream .feed-reply-header > span { display: block !important; margin-top: 6px !important; padding-top: 6px !important; border-top: 1px solid rgba(148,163,184,.16) !important; }
+            #feed-stream .ml-4 { margin-left: 8px !important; padding-left: 8px !important; }
+            #feed-stream .feed-comment-header + p, #feed-stream .feed-reply-header + p { font-size: 13px !important; line-height: 1.6 !important; word-break: normal !important; overflow-wrap: break-word !important; }
+            #view-co-assistant #ai-chat-board { min-height: 58dvh !important; height: 58dvh !important; font-size: 15px !important; }
             .light-theme #feed-stream > div { background: #ffffff !important; border-color: #cbd5e1 !important; }
             #feed-stream img { width: 38px !important; height: 38px !important; }
             #view-feed { padding-left: 2px !important; padding-right: 2px !important; }
+        }
+
+        #view-co-assistant.ai-fullscreen {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 90 !important;
+            margin: 0 !important;
+            padding: 12px !important;
+            background: #020617 !important;
+            overflow: hidden !important;
+        }
+        #view-co-assistant.ai-fullscreen > .grid { height: calc(100dvh - 24px) !important; min-height: 0 !important; }
+        #view-co-assistant.ai-fullscreen #ai-chat-board { height: auto !important; min-height: 0 !important; font-size: 15px !important; }
+        @media (max-width: 767px) {
+            #view-co-assistant.ai-fullscreen { padding: 8px !important; }
+            #view-co-assistant.ai-fullscreen > .grid { height: calc(100dvh - 16px) !important; }
+            #view-co-assistant.ai-fullscreen > .grid > :last-child { height: 100% !important; min-height: 0 !important; }
+            #view-co-assistant.ai-fullscreen #ai-chat-board { height: auto !important; min-height: 0 !important; margin: 10px 0 !important; }
+            #view-co-assistant.ai-fullscreen .bg-indigo-950\/20 { display: none !important; }
         }
 
 </style>
@@ -2851,7 +2877,12 @@
                                         
                                     </div>
                                 </div>
-                                <div id="ai-active-session-title" class="text-xs text-indigo-300 font-black tracking-tight truncate max-w-[200px]">Active Session</div>
+                                <div class="flex items-center gap-2">
+                                    <div id="ai-active-session-title" class="text-xs text-indigo-300 font-black tracking-tight truncate max-w-[160px]">Active Session</div>
+                                    <button id="ai-fullscreen-button" onclick="toggleAIFullscreen()" class="p-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white transition" title="Open full-screen chat" aria-label="Open full-screen chat">
+                                        <i id="ai-fullscreen-icon" data-lucide="maximize-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- Scrollable Chat Bubbles Frame -->
@@ -4709,8 +4740,8 @@
 
                         repliesHTML += `
                             <div class="p-2.5 rounded-xl bg-slate-950/20 border border-white/5 space-y-1">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-1.5">
+                                <div class="feed-reply-header flex items-center justify-between">
+                                    <div class="feed-reply-author flex items-center gap-1.5 min-w-0">
                                         <img src="${replyAvatar}" class="w-4 h-4 rounded-full border border-white/10 shrink-0">
                                         <span class="text-[10px] font-black text-white">${reply.author}</span>
                                         ${replyTitleBadge}
@@ -4733,8 +4764,8 @@
 
                     commentsHTML += `
                         <div class="p-3 rounded-xl bg-slate-950/35 border border-white/5 space-y-2 hover:border-white/10 transition-all">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
+                            <div class="feed-comment-header flex items-center justify-between">
+                                <div class="feed-comment-author flex items-center gap-2 min-w-0">
                                     <img src="${commentAvatar}" class="w-5 h-5 rounded-full border border-white/10 shrink-0">
                                     <span class="text-[11px] font-black text-white">${comment.author}</span>
                                     ${commentTitleBadge}
@@ -5815,6 +5846,25 @@
             }
             return false;
         }
+
+        function toggleAIFullscreen() {
+            const view = document.getElementById('view-co-assistant');
+            const icon = document.getElementById('ai-fullscreen-icon');
+            const button = document.getElementById('ai-fullscreen-button');
+            if (!view) return;
+            const enabled = view.classList.toggle('ai-fullscreen');
+            if (icon) icon.setAttribute('data-lucide', enabled ? 'minimize-2' : 'maximize-2');
+            if (button) {
+                button.title = enabled ? 'Exit full-screen chat' : 'Open full-screen chat';
+                button.setAttribute('aria-label', button.title);
+            }
+            document.body.classList.toggle('overflow-hidden', enabled);
+            lucide.createIcons();
+        }
+
+        window.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && document.getElementById('view-co-assistant')?.classList.contains('ai-fullscreen')) toggleAIFullscreen();
+        });
 
         async function submitAIChatMessage() {
             const input = document.getElementById('ai-chat-prompt');
