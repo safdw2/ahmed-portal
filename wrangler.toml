@@ -23,7 +23,7 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding = "DB"
 database_name = "ahmed-abdelfatah-db"
-database_id = "ca82b308-d3d0-4f8e-9c41-beb54f0b0413"
+database_id = "48d0a802-ac09-4084-ba2f-51231553b465"
 
 # -----------------------------------------------------------------
 # Optional: AI proxy keys used by functions/[[path]].js (/api/ai/chat).
