@@ -274,19 +274,19 @@ export async function onRequest(context) {
                             post.author,
                             post.date || 'Today',
                             post.text,
-                            post.attachmentName || null,
-                            post.attachmentType === 'image' ? 'uploaded.jpg' : null,
-                            JSON.stringify(post.comments || []),
-                            JSON.stringify(post.likedBy || []),
+                            post.attachment_name ?? post.attachmentName ?? null,
+                            post.image ?? (post.attachment_type === 'image' || post.attachmentType === 'image' ? 'uploaded.jpg' : null),
+                            post.comments_json ?? JSON.stringify(post.comments || []),
+                            post.likes_json ?? JSON.stringify(post.likedBy || []),
                             post.xp || 0,
-                            post.levelTitle || 'Novice Scientist 🟢',
-                            post.role || 'Student',
-                            post.gender || 'Boy',
-                            post.title || null,
-                            post.fontSize || '13px',
-                            post.textColor || null,
-                            post.attachmentType || null,
-                            post.attachmentUrl || null
+                            post.level_title ?? post.levelTitle ?? 'Novice Scientist 🟢',
+                            post.author_role ?? post.role ?? 'Student',
+                            post.author_gender ?? post.gender ?? 'Boy',
+                            post.author_title ?? post.title ?? null,
+                            post.font_size ?? post.fontSize ?? '13px',
+                            post.text_color ?? post.textColor ?? null,
+                            post.attachment_type ?? post.attachmentType ?? null,
+                            post.attachment_url ?? post.attachmentUrl ?? null
                         ).run();
                         return jsonResponse({ success: true, id: result.meta.last_row_id, message: 'Feed post broadcasted.' });
                     }
@@ -310,11 +310,11 @@ export async function onRequest(context) {
                         author_role=?, author_gender=?, author_title=?, font_size=?, text_color=?, attachment_type=?, attachment_url=?
                         WHERE id=?
                     `).bind(
-                        post.date || 'Today', post.text, post.attachmentName || null,
-                        JSON.stringify(post.comments || []), JSON.stringify(post.likedBy || []),
-                        post.role || 'Student', post.gender || 'Boy', post.title || null,
-                        post.fontSize || '13px', post.textColor || null,
-                        post.attachmentType || null, post.attachmentUrl || null, feedId
+                        post.date || 'Today', post.text, post.attachment_name ?? post.attachmentName ?? null,
+                        post.comments_json ?? JSON.stringify(post.comments || []), post.likes_json ?? JSON.stringify(post.likedBy || []),
+                        post.author_role ?? post.role ?? 'Student', post.author_gender ?? post.gender ?? 'Boy', post.author_title ?? post.title ?? null,
+                        post.font_size ?? post.fontSize ?? '13px', post.text_color ?? post.textColor ?? null,
+                        post.attachment_type ?? post.attachmentType ?? null, post.attachment_url ?? post.attachmentUrl ?? null, feedId
                     ).run();
                     return jsonResponse({ success: true });
                 }
