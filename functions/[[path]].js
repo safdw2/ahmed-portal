@@ -44,7 +44,8 @@ export async function onRequest(context) {
     if (pathname === '/api/ai/chat' && request.method === 'POST') {
         try {
             const body = await request.json();
-            const cerebrasKey = env.CEREBRAS_API_KEY || 'csk-94wjwe23nfwxnypf5yjhpcnfxm9fhdd92tmwm39m35nememm';
+            const cerebrasKey = env.CEREBRAS_API_KEY;
+            if (!cerebrasKey) return jsonResponse({ error: 'AI service is not configured yet.' }, 503);
 
             const aiResponse = await fetch('https://api.cerebras.ai/v1/chat/completions', {
                 method: 'POST',
@@ -60,7 +61,8 @@ export async function onRequest(context) {
                 return jsonResponse(data, 200);
             }
 
-            const groqKey = env.GROQ_API_KEY || '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';
+            const groqKey = env.GROQ_API_KEY;
+            if (!groqKey) return jsonResponse({ error: 'AI service is temporarily unavailable.' }, 503);
             const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -82,7 +84,7 @@ export async function onRequest(context) {
         }
     }
 
-    // 🗄️ 3. CLOUDFLARE D1 DATABASE API ENDPOINTS (/api/db/*)
+        // 🗄️ 3. CLOUDFLARE D1 DATABASE API ENDPOINTS (/api/db/*)
     // Matches exact table names in D1: students_table, videos_table, materials_table, feed_table, portal_feedbacks
     if (pathname.startsWith('/api/db/')) {
         const d1 = env.DB;
@@ -266,8 +268,8 @@ export async function onRequest(context) {
                     const post = await request.json();
                     if (d1) {
                         const result = await d1.prepare(`
-                            INSERT INTO feed_table (author, date, text, attachment_name, image, comments_json, likes_json, xp, level_title)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            INSERT INTO feed_table (author, date, text, attachment_name, image, comments_json, likes_json, xp, level_title, author_role, author_gender, author_title, font_size, text_color, attachment_type, attachment_url)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         `).bind(
                             post.author,
                             post.date || 'Today',
@@ -277,7 +279,14 @@ export async function onRequest(context) {
                             JSON.stringify(post.comments || []),
                             JSON.stringify(post.likedBy || []),
                             post.xp || 0,
-                            post.levelTitle || 'Novice Scientist 🟢'
+                            post.levelTitle || 'Novice Scientist 🟢',
+                            post.role || 'Student',
+                            post.gender || 'Boy',
+                            post.title || null,
+                            post.fontSize || '13px',
+                            post.textColor || null,
+                            post.attachmentType || null,
+                            post.attachmentUrl || null
                         ).run();
                         return jsonResponse({ success: true, id: result.meta.last_row_id, message: 'Feed post broadcasted.' });
                     }
@@ -285,6 +294,33 @@ export async function onRequest(context) {
                 } catch (err) {
                     return jsonResponse({ error: err.message }, 400);
                 }
+            }
+        }
+
+        // Comments, likes, author title/avatar choice and text styling are kept
+        // together in the post payload. Saving the whole record prevents a reload
+        // from turning a developer profile into the default student profile.
+        if (pathname.startsWith('/api/db/feed/') && request.method === 'PUT') {
+            try {
+                const feedId = pathname.split('/').pop();
+                const post = await request.json();
+                if (d1 && feedId) {
+                    await d1.prepare(`
+                        UPDATE feed_table SET date=?, text=?, attachment_name=?, comments_json=?, likes_json=?,
+                        author_role=?, author_gender=?, author_title=?, font_size=?, text_color=?, attachment_type=?, attachment_url=?
+                        WHERE id=?
+                    `).bind(
+                        post.date || 'Today', post.text, post.attachmentName || null,
+                        JSON.stringify(post.comments || []), JSON.stringify(post.likedBy || []),
+                        post.role || 'Student', post.gender || 'Boy', post.title || null,
+                        post.fontSize || '13px', post.textColor || null,
+                        post.attachmentType || null, post.attachmentUrl || null, feedId
+                    ).run();
+                    return jsonResponse({ success: true });
+                }
+                return jsonResponse({ success: true, mock: true });
+            } catch (err) {
+                return jsonResponse({ error: err.message }, 400);
             }
         }
 
@@ -336,39 +372,3 @@ export async function onRequest(context) {
             if (d1 && fbId) {
                 await d1.prepare('DELETE FROM portal_feedbacks WHERE id = ?').bind(fbId).run();
                 return jsonResponse({ success: true, message: 'Feedback removed.' });
-            }
-            return jsonResponse({ success: true });
-        }
-
-        // --- RAW SQL DIRECTIVE CONSOLE ENDPOINT ---
-        if (pathname === '/api/db/query' && request.method === 'POST') {
-            try {
-                const { sql } = await request.json();
-                if (d1) {
-                    const result = await d1.prepare(sql).all();
-                    return jsonResponse(result);
-                }
-                return jsonResponse({ results: [], message: 'Simulated D1 Executor Active.' });
-            } catch (err) {
-                return jsonResponse({ error: err.message }, 400);
-            }
-        }
-    }
-
-    // 🌐 4. STATIC ASSET PASS-THROUGH & SPA ROUTING FALLBACK
-    try {
-        const response = await env.ASSETS.fetch(request);
-        const newHeaders = new Headers(response.headers);
-        Object.entries(corsHeaders).forEach(([key, value]) => {
-            newHeaders.set(key, value);
-        });
-
-        return new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: newHeaders
-        });
-    } catch (e) {
-        return env.ASSETS.fetch(new URL('/', request.url));
-    }
-}
