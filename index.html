@@ -4047,14 +4047,27 @@
             sessionsList.innerHTML = '';
             const completedIds = new Set((currentUser?.completed_lecture_ids || []).map(String));
 
-            const filteredLectures = lectures.filter(l => {
+            const displayLectures = lectures.filter(l => {
                 if (currentUser.role === 'student' && l.grade !== currentUser.grade) return false;
                 return true;
             });
 
-            document.getElementById('videos-count-badge').textContent = `${filteredLectures.length} Lectures`;
+            // `lectures` is hydrated once at startup. If that request raced the
+            // login/session startup, retry the D1 read before reporting an empty
+            // catalog. This keeps an already-saved lecture visible after refresh.
+            if (lectures.length === 0) {
+                D1.getLectures().then(rows => {
+                    if (Array.isArray(rows) && rows.length) {
+                        lectures = rows;
+                        syncLocalDB();
+                        renderVideos();
+                    }
+                });
+            }
 
-            if (filteredLectures.length === 0) {
+            document.getElementById('videos-count-badge').textContent = `${displayLectures.length} Lectures`;
+
+            if (displayLectures.length === 0) {
                 sessionsList.innerHTML = `
                     <div class="text-center py-8 text-xs text-gray-500 font-semibold bg-slate-950/20 border border-white/5 rounded-2xl w-full">
                         No video lectures listed for your grade yet.
@@ -4063,7 +4076,7 @@
                 return;
             }
 
-            filteredLectures.sort((a, b) => Number(a.lesson || 0) - Number(b.lesson || 0)).forEach(lec => {
+            displayLectures.sort((a, b) => Number(a.lesson || 0) - Number(b.lesson || 0)).forEach(lec => {
                 const row = document.createElement('div');
                 row.className = "w-full text-left p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-indigo-500/20 flex items-center justify-between group transition cursor-pointer hover:bg-slate-900/35";
                 row.onclick = () => loadSecureLecture(lec);
