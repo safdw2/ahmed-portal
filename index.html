@@ -3297,11 +3297,8 @@
         // -----------------------------------------------------------------
         // GLOBAL CLIENT DATABASES (AUTOMATICALLY SEED LOCAL STORAGE / CLOUD STORAGE REST ENDPOINTS)
         // -----------------------------------------------------------------
-        // 🧼 Self-cleaning storage arrays on every fresh load to guarantee NO FAKE DATA persists
-        localStorage.removeItem('lectures');
-        localStorage.removeItem('materials');
-        localStorage.removeItem('students');
-        localStorage.removeItem('feedPosts');
+        // Keep the last successful local copy while D1 is loading. Clearing these
+        // values on every refresh made a temporarily unavailable D1 row disappear.
 
         
     // 🏆 10-LEVEL ACADEMIC EXP & LEVELING CONFIGURATION
@@ -3440,7 +3437,7 @@
                 return data;
             } catch (err) {
                 console.warn(`D1 Sync notice [${path}]:`, err.message);
-                return null;
+                return { success: false, error: err.message };
             }
         }
 
@@ -5259,7 +5256,7 @@
 
         function openAddVideoModal() { document.getElementById('video-modal').classList.remove('hidden'); }
         function closeAddVideoModal() { document.getElementById('video-modal').classList.add('hidden'); }
-        function handleVideoUploadSubmit(e) {
+        async function handleVideoUploadSubmit(e) {
             e.preventDefault();
             const title = document.getElementById('video-title').value;
             const description = document.getElementById('video-desc').value;
@@ -5268,21 +5265,21 @@
             const grade = document.getElementById('video-grade').value;
             const lesson = Math.max(1, Number(document.getElementById('video-lesson').value) || 1);
 
-            const newLecture = { id: Date.now(), title, description, lesson, archive_url: url, duration_mins: duration, grade, watched_mins: 0, completed: false };
+            const newLecture = { title, description, lesson, archive_url: url, duration_mins: duration, grade, watched_mins: 0, completed: false };
+            const result = await D1.saveLecture(newLecture);
+
+            if (!result?.success || !result.id) {
+                showToast(`Lecture was not saved to D1: ${result?.error || 'unknown database error'}`, 'error');
+                return;
+            }
+
+            newLecture.id = result.id;
             lectures.push(newLecture);
             syncLocalDB();
             closeAddVideoModal();
-            showToast(extractYouTubeId(url) ? 'YouTube lecture linked and indexed!' : 'Secure Video Archive.org URL Indexed!', 'success');
+            showToast(extractYouTubeId(url) ? 'YouTube lecture linked and indexed!' : 'Video URL linked and indexed!', 'success');
             renderVideos();
             if (activeTab === 'admin') renderAdmin();
-
-            // 🗄️ Persist into D1 and swap in the real row id once we get it back
-            D1.saveLecture(newLecture).then(res => {
-                if (res && res.success && res.id) {
-                    newLecture.id = res.id;
-                    syncLocalDB();
-                }
-            });
         }
 
         function openProvisionAccountModal() { document.getElementById('student-modal').classList.remove('hidden'); }
