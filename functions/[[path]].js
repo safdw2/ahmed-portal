@@ -4,7 +4,7 @@
  * Project: MR. Ahmed Abd-ElFatah - Unified Student Workspace Portal
  * 
  * 🗄️ D1 Database Binding: env.DB
- * 🆔 Database ID: ca82b308-d3d0-4f8e-9c41-beb54f0b0413
+ * 🆔 Database ID: 48d0a802-ac09-4084-ba2f-51231553b465
  * 📛 Database Name: ahmed-abdelfatah-db
  */
 
@@ -314,22 +314,20 @@ export async function onRequest(context) {
                 try {
                     const lec = await request.json();
                     if (!await requireAdmin()) return jsonResponse({ error: 'Administrator access required.' }, 403);
-                    if (d1) {
-                        const result = await d1.prepare(`
-                            INSERT INTO videos_table (title, description, lesson, grade, filename, archive_url, duration_mins)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
-                        `).bind(
-                            lec.title,
-                            lec.description || '',
-                            lec.lesson || '1',
-                            parseInt(lec.grade) || 10,
-                            lec.filename || lec.archive_url || 'video.mp4',
-                            lec.archive_url || lec.filename || '',
-                            lec.duration_mins || 45
-                        ).run();
-                        return jsonResponse({ success: true, id: result.meta.last_row_id, message: 'Lecture registered in D1.' });
-                    }
-                    return jsonResponse({ success: true, mock: true });
+                    if (!d1) return jsonResponse({ error: 'D1 database binding "DB" is unavailable.' }, 503);
+                    const result = await d1.prepare(`
+                        INSERT INTO videos_table (title, description, lesson, grade, filename, archive_url, duration_mins)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    `).bind(
+                        lec.title,
+                        lec.description || '',
+                        lec.lesson || '1',
+                        String(lec.grade || 'Grade 10 (Secondary 1)'),
+                        lec.filename || lec.archive_url || 'video.mp4',
+                        lec.archive_url || lec.filename || '',
+                        lec.duration_mins || 45
+                    ).run();
+                    return jsonResponse({ success: true, id: result.meta.last_row_id, message: 'Lecture registered in D1.' });
                 } catch (err) {
                     return jsonResponse({ error: err.message }, 400);
                 }
