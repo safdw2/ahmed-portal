@@ -1431,12 +1431,12 @@
             h3 { font-size: 0.9rem !important; }
             p, span { font-size: 11px !important; }
             .text-xs { font-size: 10px !important; }
-            .text-[10px], .text-[11px], .text-[9px] { font-size: 9px !important; }
+            .text-\[10px\], .text-\[11px\], .text-\[9px\] { font-size: 9px !important; }
             
             /* Bento box columns must stay readable - stack single columns */
-            .md:col-span-2, .lg:col-span-2, .xl:col-span-2,
-            .md:col-span-3, .lg:col-span-3, .xl:col-span-3,
-            .md:col-span-1, .lg:col-span-1, .xl:col-span-1 {
+            .md\:col-span-2, .lg\:col-span-2, .xl\:col-span-2,
+            .md\:col-span-3, .lg\:col-span-3, .xl\:col-span-3,
+            .md\:col-span-1, .lg\:col-span-1, .xl\:col-span-1 {
                 grid-column: span 1 / span 1 !important;
             }
             
@@ -1661,12 +1661,12 @@
         html.theme-transitioning *,
         html.theme-transitioning *::before,
         html.theme-transitioning *::after {
-            transition: background-color 0.25s ease-in-out !important,
-                        border-color 0.25s ease-in-out !important,
-                        color 0.25s ease-in-out !important,
-                        fill 0.25s ease-in-out !important,
-                        stroke 0.25s ease-in-out !important,
-                        box-shadow 0.25s ease-in-out !important,
+            transition: background-color 0.25s ease-in-out,
+                        border-color 0.25s ease-in-out,
+                        color 0.25s ease-in-out,
+                        fill 0.25s ease-in-out,
+                        stroke 0.25s ease-in-out,
+                        box-shadow 0.25s ease-in-out,
                         opacity 0.25s ease-in-out !important;
         }
 
@@ -6708,7 +6708,5 @@
       fluidRenderLoop();
     </script> <!-- 1. Close the inline JavaScript block here -->
 
-    <!-- 2. Now include db.js -->
-    <script src="db.js"></script> 
   </body>
 </html>
