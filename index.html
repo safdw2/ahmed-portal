@@ -2864,7 +2864,7 @@
                         <div class="lg:col-span-2 space-y-4">
                             <div id="video-theater" class="relative bg-black rounded-2xl border border-white/10 aspect-video overflow-hidden group shadow-2xl">
                                 <!-- Embedded YouTube Player -->
-                                <iframe id="youtube-player" class="w-full h-full object-cover hidden shadow-2xl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                <iframe id="youtube-player" title="YouTube lecture player" class="w-full h-full object-cover hidden shadow-2xl" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                 
                                 <!-- Embedded Secure Player (Streams Archive.org natively with DRM elements) -->
                                 <video id="secure-player" class="w-full h-full object-cover hidden shadow-2xl" controls controlsList="nodownload" oncontextmenu="return false;" playsinline></video>
@@ -4362,11 +4362,34 @@
 // Secure Watermark Moving System (Anti-Piracy Screen Recording System)
         let watermarkTimer = null;
         
-        function extractYouTubeId(url) {
-            if (!url) return null;
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+        function extractYouTubeId(value) {
+            if (typeof value !== 'string') return null;
+            const urlText = value.trim();
+            // A pasted video ID is useful too, but only accept YouTube's 11-character ID format.
+            if (/^[A-Za-z0-9_-]{11}$/.test(urlText)) return urlText;
+
+            let parsed;
+            try {
+                parsed = new URL(urlText);
+            } catch (_) {
+                return null;
+            }
+
+            const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+            const isYouTube = host === 'youtube.com' || host.endsWith('.youtube.com') ||
+                host === 'youtube-nocookie.com' || host.endsWith('.youtube-nocookie.com');
+            let id = null;
+
+            if (host === 'youtu.be' || host.endsWith('.youtu.be')) {
+                id = parsed.pathname.split('/').filter(Boolean)[0];
+            } else if (isYouTube) {
+                id = parsed.searchParams.get('v');
+                if (!id) {
+                    const parts = parsed.pathname.split('/').filter(Boolean);
+                    if (['embed', 'shorts', 'live', 'v'].includes(parts[0])) id = parts[1];
+                }
+            }
+            return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
         }
 
         function completeActiveLecture() {
@@ -4433,7 +4456,17 @@
                 if (youtubePlayer) {
                     youtubeCurrentTime = 0;
                     if (youtubeClock) clearInterval(youtubeClock);
-                    youtubePlayer.src = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&rel=0&origin=${encodeURIComponent(window.location.origin)}`;
+                    const embedParams = new URLSearchParams({
+                        enablejsapi: '1',
+                        autoplay: '1',
+                        rel: '0',
+                        playsinline: '1'
+                    });
+                    // YouTube requires this parameter for JavaScript API messages on real web origins.
+                    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                        embedParams.set('origin', window.location.origin);
+                    }
+                    youtubePlayer.src = `https://www.youtube.com/embed/${encodeURIComponent(ytId)}?${embedParams.toString()}`;
                     youtubePlayer.classList.remove('hidden');
                     youtubePlayer.onload = () => {
                         requestYouTubeTime();
